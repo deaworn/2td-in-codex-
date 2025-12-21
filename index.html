@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TD Academy v0.0.2</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="layout" aria-label="TD Academy prototípus">
+    <header class="hero">
+      <p class="eyebrow">Canvas Tower Defense</p>
+      <h1>TD Academy</h1>
+      <p class="tagline">Egyetlen ellenfél, színes útvonal, látványos utazás.</p>
+      <button id="startButton" type="button">Start</button>
+    </header>
+
+    <section class="stage">
+      <canvas id="gameCanvas" width="900" height="480" aria-label="Játéktér"></canvas>
+      <div class="legend">
+        <span class="chip path">Út</span>
+        <span class="chip enemy">Ellenfél</span>
+        <span class="chip trail">Fénycsóva</span>
+      </div>
+    </section>
+  </main>
+  <div class="version">v0.0.2</div>
+  <script src="main.js"></script>
+</body>
+</html>
