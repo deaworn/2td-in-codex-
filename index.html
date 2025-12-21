@@ -3,14 +3,87 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TD Academy v0.0.1</title>
+  <title>TD Academy v0.1.0</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <main class="layout" aria-label="TD Academy kezdőlap">
-    <h1>TD Academy</h1>
+    <header class="hero">
+      <div class="title-wrap">
+        <p class="eyebrow">Tower Defense Műhely</p>
+        <h1>TD Academy</h1>
+        <p class="subtitle">Építs tornyokat, tartsd vissza a hullámokat, és védd meg a kristályt az inváziótól.</p>
+      </div>
+      <div class="controls">
+        <button id="startWave" class="btn primary">Start / Következő hullám</button>
+        <button id="resetGame" class="btn ghost">Újrakezdés</button>
+        <label class="speed">
+          <span>Játékmenet</span>
+          <select id="speedSelect" aria-label="Játék sebessége">
+            <option value="1">1x</option>
+            <option value="1.5">1.5x</option>
+            <option value="2">2x</option>
+          </select>
+        </label>
+      </div>
+    </header>
+
+    <section class="hud" aria-label="Játék állapota">
+      <div class="stat">
+        <p class="label">Arany</p>
+        <p class="value" id="gold">120</p>
+      </div>
+      <div class="stat">
+        <p class="label">Életerő</p>
+        <p class="value" id="lives">20</p>
+      </div>
+      <div class="stat">
+        <p class="label">Hullám</p>
+        <p class="value" id="wave">1 / 8</p>
+      </div>
+      <div class="stat">
+        <p class="label">Ellenségek</p>
+        <p class="value" id="enemies">0</p>
+      </div>
+      <div class="stat">
+        <p class="label">Torony költség</p>
+        <p class="value" id="towerCost">45</p>
+      </div>
+    </section>
+
+    <section class="board-wrap" aria-label="Játéktér">
+      <div class="canvas-hint">Kattints a mezőre tornyok lerakásához. A zöld út a támadók haladási iránya.</div>
+      <canvas id="board" width="900" height="540" role="img" aria-label="Tower defense pálya"></canvas>
+    </section>
+
+    <section class="info-grid">
+      <article class="card">
+        <h2>Taktika</h2>
+        <ul>
+          <li>Kattints a szabad mezőkre: Lángtorony (45 arany) tüzel a legközelebbi egységre.</li>
+          <li>A tornyok kör hatótávját lerakáskor lilás aura jelöli.</li>
+          <li>Az ellenségek kiiktatása aranyat ad, amit új tornyokra költhetsz.</li>
+        </ul>
+      </article>
+      <article class="card">
+        <h2>Hullámok</h2>
+        <ul>
+          <li>8 változatos hullám, gyorsuló és páncélozott egységekkel.</li>
+          <li>Ha egy egység eléri a kristályt, 1 életet veszítesz.</li>
+          <li>Vesztettél, ha az életek 0-ra csökkennek. Győztél, ha túléled az összes hullámot!</li>
+        </ul>
+      </article>
+      <article class="card">
+        <h2>Tippek</h2>
+        <ul>
+          <li>Nyisd meg a 2x sebességet, ha már stabil a védelmed.</li>
+          <li>Próbáld a kanyaroknál sűríteni a tüzet, így hosszabb ideig ér a sebzés.</li>
+          <li>Ha elrontottad a kezdést, az <strong>Újrakezdés</strong> gombbal azonnal újrapróbálhatod.</li>
+        </ul>
+      </article>
+    </section>
   </main>
-  <div class="version">v0.0.1</div>
+  <div class="version">v0.1.0</div>
   <script src="main.js"></script>
 </body>
 </html>
