@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TD Academy v0.1.0</title>
+  <title>TD Academy v0.2.0</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -39,16 +39,34 @@
       </div>
       <div class="stat">
         <p class="label">Hullám</p>
-        <p class="value" id="wave">1 / 8</p>
+        <p class="value" id="wave">0 / 9</p>
       </div>
       <div class="stat">
         <p class="label">Ellenségek</p>
         <p class="value" id="enemies">0</p>
       </div>
       <div class="stat">
-        <p class="label">Torony költség</p>
-        <p class="value" id="towerCost">45</p>
+        <p class="label">Kiválasztott torony</p>
+        <p class="value" id="towerName">Lángtorony (45)</p>
       </div>
+    </section>
+
+    <section class="towers" aria-label="Toronyválasztó">
+      <div class="tower-grid">
+        <button class="tower-btn active" data-tower="flame">
+          <span class="tower-title">Lángtorony</span>
+          <span class="tower-meta">45 arany • egyenes sebzés</span>
+        </button>
+        <button class="tower-btn" data-tower="frost">
+          <span class="tower-title">Fagyasztó torony</span>
+          <span class="tower-meta">55 arany • lassítás</span>
+        </button>
+        <button class="tower-btn" data-tower="tesla">
+          <span class="tower-title">Szikra torony</span>
+          <span class="tower-meta">70 arany • láncsebzés</span>
+        </button>
+      </div>
+      <p class="tower-hint">Tipp: Válassz tornyot, majd kattints a pálya útvonalon kívüli mezőire a lerakáshoz. A színes aurák a hatótávot jelzik.</p>
     </section>
 
     <section class="board-wrap" aria-label="Játéktér">
@@ -61,7 +79,8 @@
         <h2>Taktika</h2>
         <ul>
           <li>Kattints a szabad mezőkre: Lángtorony (45 arany) tüzel a legközelebbi egységre.</li>
-          <li>A tornyok kör hatótávját lerakáskor lilás aura jelöli.</li>
+          <li>A Fagyasztó torony lassítja a célpontot, a Szikra torony pedig a következő közeli egységre is továbbugrik.</li>
+          <li>A tornyok kör hatótávját lerakáskor színes aura jelöli.</li>
           <li>Az ellenségek kiiktatása aranyat ad, amit új tornyokra költhetsz.</li>
         </ul>
       </article>
@@ -83,7 +102,7 @@
       </article>
     </section>
   </main>
-  <div class="version">v0.1.0</div>
+  <div class="version">v0.2.0</div>
   <script src="main.js"></script>
 </body>
 </html>

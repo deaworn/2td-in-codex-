@@ -5,18 +5,54 @@ const goldEl = document.getElementById('gold');
 const livesEl = document.getElementById('lives');
 const waveEl = document.getElementById('wave');
 const enemiesEl = document.getElementById('enemies');
-const towerCostEl = document.getElementById('towerCost');
+const towerNameEl = document.getElementById('towerName');
 const startBtn = document.getElementById('startWave');
 const resetBtn = document.getElementById('resetGame');
 const speedSelect = document.getElementById('speedSelect');
+const towerButtons = Array.from(document.querySelectorAll('.tower-btn'));
 
 const CELL = 45;
 const COLS = canvas.width / CELL;
 const ROWS = canvas.height / CELL;
-const TOWER_COST = 45;
 const RANGE = CELL * 3.1;
-const FIRE_RATE = 1.2;
-const BULLET_SPEED = 380;
+
+const towerTypes = {
+  flame: {
+    name: 'Lángtorony',
+    cost: 45,
+    range: RANGE,
+    fireRate: 1.25,
+    damage: 22,
+    bulletSpeed: 380,
+    color: '#f97316'
+  },
+  frost: {
+    name: 'Fagyasztó torony',
+    cost: 55,
+    range: RANGE * 0.92,
+    fireRate: 1,
+    damage: 12,
+    bulletSpeed: 320,
+    color: '#38bdf8',
+    slow: {
+      amount: 0.55,
+      duration: 1.6
+    }
+  },
+  tesla: {
+    name: 'Szikra torony',
+    cost: 70,
+    range: RANGE * 1.05,
+    fireRate: 0.9,
+    damage: 18,
+    bulletSpeed: 420,
+    color: '#a855f7',
+    chain: {
+      range: 110,
+      falloff: 0.55
+    }
+  }
+};
 
 const pathCells = [
   { c: 0, r: 6 },
@@ -37,7 +73,8 @@ const waves = [
   { count: 12, hp: 90, speed: 56, reward: 10, armor: 0.12, tint: '#f97316' },
   { count: 16, hp: 95, speed: 78, reward: 10, tint: '#a855f7' },
   { count: 18, hp: 120, speed: 82, reward: 11, armor: 0.18, tint: '#fb7185' },
-  { count: 20, hp: 150, speed: 92, reward: 12, armor: 0.22, tint: '#22d3ee' }
+  { count: 12, hp: 200, speed: 85, reward: 13, armor: 0.22, tint: '#22d3ee' },
+  { count: 1, hp: 600, speed: 70, reward: 40, armor: 0.3, tint: '#facc15', boss: true }
 ];
 
 const state = {
@@ -50,11 +87,12 @@ const state = {
   running: false,
   spawnTimer: 0,
   spawned: 0,
-  message: 'Készen állsz! Helyezz tornyot a szabad mezőkre.',
-  speed: 1
+  message: 'Készen állsz! Válassz tornyot és kattints a pályára.',
+  speed: 1,
+  selectedTower: 'flame'
 };
 
-towerCostEl.textContent = TOWER_COST;
+towerNameEl.textContent = `${towerTypes[state.selectedTower].name} (${towerTypes[state.selectedTower].cost})`;
 
 function toPixels(cell) {
   return {
@@ -67,6 +105,15 @@ const pathPoints = pathCells.map(toPixels);
 
 function lerp(a, b, t) {
   return a + (b - a) * t;
+}
+
+function withAlpha(hex, alpha) {
+  const clean = hex.replace('#', '');
+  const num = parseInt(clean, 16);
+  const r = (num >> 16) & 255;
+  const g = (num >> 8) & 255;
+  const b = num & 255;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
 function roundRect(ctx, x, y, w, h, r) {
@@ -93,13 +140,16 @@ class Enemy {
     this.tint = waveData.tint;
     this.segment = 0;
     this.progress = 0;
-    this.radius = 12;
+    this.radius = waveData.boss ? 16 : 12;
     this.isDead = false;
+    this.slowTimer = 0;
+    this.speedFactor = 1;
+    this.isBoss = Boolean(waveData.boss);
   }
 
   update(dt) {
     if (this.isDead) return;
-    let remaining = this.speed * dt;
+    let remaining = this.speed * this.speedFactor * dt;
     while (remaining > 0 && this.segment < pathPoints.length - 1) {
       const from = pathPoints[this.segment];
       const to = pathPoints[this.segment + 1];
@@ -123,6 +173,13 @@ class Enemy {
       state.lives = Math.max(0, state.lives - 1);
       state.message = 'Egy egység áttört!';
     }
+
+    if (this.slowTimer > 0) {
+      this.slowTimer -= dt;
+      if (this.slowTimer <= 0) {
+        this.speedFactor = 1;
+      }
+    }
   }
 
   draw(ctx) {
@@ -134,7 +191,7 @@ class Enemy {
     ctx.translate(pos.x, pos.y);
     ctx.fillStyle = this.tint;
     ctx.shadowColor = this.tint;
-    ctx.shadowBlur = 12;
+    ctx.shadowBlur = 14;
     ctx.beginPath();
     ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
     ctx.fill();
@@ -146,12 +203,11 @@ class Enemy {
     ctx.arc(0, 0, this.radius + 2, Math.PI * 1.1, Math.PI * 1.9);
     ctx.stroke();
 
-    // HP bar
     ctx.fillStyle = '#0f172a';
-    ctx.fillRect(-16, -22, 32, 6);
-    ctx.fillStyle = pct > 0.5 ? '#22c55e' : '#fbbf24';
+    ctx.fillRect(-18, -24, 36, 7);
+    ctx.fillStyle = pct > 0.6 ? '#22c55e' : '#fbbf24';
     if (pct <= 0.25) ctx.fillStyle = '#f87171';
-    ctx.fillRect(-16, -22, 32 * pct, 6);
+    ctx.fillRect(-18, -24, 36 * pct, 7);
     ctx.restore();
   }
 
@@ -170,19 +226,27 @@ class Enemy {
     if (this.hp <= 0 && !this.isDead) {
       this.isDead = true;
       state.gold += this.reward;
+      state.message = this.isBoss ? 'Főellenség elfüstölt!' : 'Ellenség legyőzve – bónusz arany!';
     }
+  }
+
+  applySlow(factor, duration) {
+    this.speedFactor = Math.min(this.speedFactor, factor);
+    this.slowTimer = Math.max(this.slowTimer, duration);
   }
 }
 
 class Tower {
-  constructor(col, row) {
+  constructor(col, row, typeKey) {
     this.col = col;
     this.row = row;
     this.x = col * CELL + CELL / 2;
     this.y = row * CELL + CELL / 2;
-    this.range = RANGE;
+    this.type = typeKey;
+    this.config = towerTypes[typeKey];
+    this.range = this.config.range;
     this.cooldown = 0;
-    this.fireDelay = 1 / FIRE_RATE;
+    this.fireDelay = 1 / this.config.fireRate;
   }
 
   update(dt) {
@@ -215,9 +279,7 @@ class Tower {
   }
 
   fire(target) {
-    state.bullets.push(
-      new Bullet(this.x, this.y, target)
-    );
+    state.bullets.push(new Bullet(this.x, this.y, target, this.type, this.config));
   }
 
   draw(ctx) {
@@ -245,12 +307,14 @@ class Tower {
 }
 
 class Bullet {
-  constructor(x, y, target) {
+  constructor(x, y, target, typeKey, config) {
     this.x = x;
     this.y = y;
     this.target = target;
-    this.speed = BULLET_SPEED;
-    this.damage = 22;
+    this.type = typeKey;
+    this.config = config;
+    this.speed = config.bulletSpeed;
+    this.damage = config.damage;
   }
 
   update(dt) {
@@ -261,6 +325,15 @@ class Bullet {
     const dist = Math.hypot(dx, dy);
     if (dist < 6) {
       this.target.takeDamage(this.damage);
+      if (this.config.slow && !this.target.isDead) {
+        this.target.applySlow(this.config.slow.amount, this.config.slow.duration);
+      }
+      if (this.config.chain) {
+        const nearby = state.enemies.find(e => !e.isDead && e !== this.target && Math.hypot(e.position().x - pos.x, e.position().y - pos.y) <= this.config.chain.range);
+        if (nearby) {
+          nearby.takeDamage(this.damage * this.config.chain.falloff);
+        }
+      }
       return true;
     }
     const move = this.speed * dt;
@@ -274,7 +347,7 @@ class Bullet {
   draw(ctx) {
     if (!this.target || this.target.isDead) return;
     ctx.save();
-    ctx.strokeStyle = 'rgba(124, 58, 237, 0.9)';
+    ctx.strokeStyle = withAlpha(this.config.color, 0.9);
     ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.moveTo(this.x, this.y);
@@ -313,14 +386,16 @@ function handleCanvasClick(event) {
     state.message = 'Itt már áll egy torony.';
     return;
   }
-  if (state.gold < TOWER_COST) {
-    state.message = 'Nincs elég aranyod ehhez a toronyhoz.';
+
+  const config = towerTypes[state.selectedTower];
+  if (state.gold < config.cost) {
+    state.message = `Nincs elég aranyod (${config.cost}) ehhez a toronyhoz.`;
     return;
   }
 
-  state.gold -= TOWER_COST;
-  state.towers.push(new Tower(col, row));
-  state.message = 'Új Lángtorony felállítva!';
+  state.gold -= config.cost;
+  state.towers.push(new Tower(col, row, state.selectedTower));
+  state.message = `${config.name} felállítva!`;
 }
 
 canvas.addEventListener('click', handleCanvasClick);
@@ -343,13 +418,24 @@ speedSelect.addEventListener('change', () => {
   state.speed = Number(speedSelect.value);
 });
 
+towerButtons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    const towerKey = btn.dataset.tower;
+    state.selectedTower = towerKey;
+    towerButtons.forEach(b => b.classList.toggle('active', b.dataset.tower === towerKey));
+    updateTowerHud();
+    state.message = `${towerTypes[towerKey].name} kiválasztva. Kattints a lerakáshoz!`;
+  });
+});
+
 function startNextWave() {
   if (state.waveIndex >= waves.length - 1) return;
   state.waveIndex++;
   state.spawned = 0;
   state.spawnTimer = 0;
   state.running = true;
-  state.message = `Hullám #${state.waveIndex + 1} elindult!`;
+  const waveInfo = waves[state.waveIndex];
+  state.message = waveInfo.boss ? 'Főellenség érkezik! Készülj!' : `Hullám #${state.waveIndex + 1} elindult!`;
 }
 
 function resetGame() {
@@ -362,7 +448,7 @@ function resetGame() {
   state.running = false;
   state.spawnTimer = 0;
   state.spawned = 0;
-  state.message = 'Újrakezdve! Helyezz tornyokat és indítsd a hullámot.';
+  state.message = 'Újrakezdve! Válassz tornyot és indítsd a hullámot.';
 }
 
 function spawnEnemy(dt) {
@@ -475,10 +561,10 @@ function drawEnemies() {
 
 function drawRangeHighlights() {
   ctx.save();
-  ctx.fillStyle = 'rgba(124, 58, 237, 0.07)';
-  ctx.strokeStyle = 'rgba(124, 58, 237, 0.2)';
-  ctx.lineWidth = 2;
   state.towers.forEach(t => {
+    ctx.fillStyle = withAlpha(t.config.color, 0.08);
+    ctx.strokeStyle = withAlpha(t.config.color, 0.2);
+    ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.arc(t.x, t.y, t.range, 0, Math.PI * 2);
     ctx.fill();
@@ -508,6 +594,11 @@ function draw() {
   drawMessage();
 }
 
+function updateTowerHud() {
+  const config = towerTypes[state.selectedTower];
+  towerNameEl.textContent = `${config.name} (${config.cost})`;
+}
+
 function updateHud() {
   goldEl.textContent = Math.floor(state.gold);
   livesEl.textContent = state.lives;
@@ -526,6 +617,7 @@ function tick(now) {
 }
 
 resetGame();
+updateTowerHud();
 tick(lastTime);
 
-console.log('TD Academy v0.1.0 betöltve');
+console.log('TD Academy v0.2.0 betöltve');
