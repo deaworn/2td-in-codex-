@@ -1,670 +1,170 @@
-const canvas = document.getElementById('board');
+const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
+const startButton = document.getElementById('startButton');
 
-const goldEl = document.getElementById('gold');
-const livesEl = document.getElementById('lives');
-const waveEl = document.getElementById('wave');
-const enemiesEl = document.getElementById('enemies');
-const towerNameEl = document.getElementById('towerName');
-const startBtn = document.getElementById('startWave');
-const resetBtn = document.getElementById('resetGame');
-const speedSelect = document.getElementById('speedSelect');
-const towerButtons = Array.from(document.querySelectorAll('.tower-btn'));
-
-const CELL = 45;
-const COLS = canvas.width / CELL;
-const ROWS = canvas.height / CELL;
-const RANGE = CELL * 3.1;
-
-const towerTypes = {
-  flame: {
-    name: 'Lángtorony',
-    cost: 45,
-    range: RANGE,
-    fireRate: 1.25,
-    damage: 22,
-    bulletSpeed: 380,
-    color: '#f97316'
-  },
-  frost: {
-    name: 'Fagyasztó torony',
-    cost: 55,
-    range: RANGE * 0.92,
-    fireRate: 1,
-    damage: 12,
-    bulletSpeed: 320,
-    color: '#38bdf8',
-    slow: {
-      amount: 0.55,
-      duration: 1.6
-    }
-  },
-  tesla: {
-    name: 'Szikra torony',
-    cost: 70,
-    range: RANGE * 1.05,
-    fireRate: 0.9,
-    damage: 18,
-    bulletSpeed: 420,
-    color: '#a855f7',
-    chain: {
-      range: 110,
-      falloff: 0.55
-    }
-  }
-};
-
-const pathCells = [
-  { c: 0, r: 6 },
-  { c: 4, r: 6 },
-  { c: 4, r: 3 },
-  { c: 9, r: 3 },
-  { c: 9, r: 8 },
-  { c: 14, r: 8 },
-  { c: 14, r: 4 },
-  { c: 19, r: 4 }
+// Színes, lágy kanyarokkal rendelkező útvonal.
+const pathPoints = [
+  { x: 80, y: 380 },
+  { x: 200, y: 180 },
+  { x: 340, y: 240 },
+  { x: 480, y: 140 },
+  { x: 650, y: 200 },
+  { x: 780, y: 120 },
+  { x: 840, y: 320 },
 ];
 
-const waves = [
-  { count: 8, hp: 28, speed: 45, reward: 6, tint: '#fef08a' },
-  { count: 10, hp: 36, speed: 55, reward: 7, tint: '#f87171' },
-  { count: 12, hp: 44, speed: 62, reward: 8, tint: '#60a5fa' },
-  { count: 14, hp: 60, speed: 70, reward: 9, tint: '#10b981' },
-  { count: 12, hp: 90, speed: 56, reward: 10, armor: 0.12, tint: '#f97316' },
-  { count: 16, hp: 95, speed: 78, reward: 10, tint: '#a855f7' },
-  { count: 18, hp: 120, speed: 82, reward: 11, armor: 0.18, tint: '#fb7185' },
-  { count: 12, hp: 200, speed: 85, reward: 13, armor: 0.22, tint: '#22d3ee' },
-  { count: 1, hp: 600, speed: 70, reward: 40, armor: 0.3, tint: '#facc15', boss: true }
-];
-
-const state = {
-  gold: 120,
-  lives: 20,
-  waveIndex: -1,
-  enemies: [],
-  towers: [],
-  bullets: [],
-  running: false,
-  spawnTimer: 0,
-  spawned: 0,
-  message: 'Készen állsz! Válassz tornyot és kattints a pályára.',
-  speed: 1,
-  selectedTower: 'flame',
-  hover: null
+// Egyetlen ellenfél állapota.
+const enemy = {
+  x: pathPoints[0].x,
+  y: pathPoints[0].y,
+  speed: 160,
+  segmentIndex: 0,
+  progress: 0,
+  trail: [], // fénycsóvák pozíciói
 };
 
-towerNameEl.textContent = `${towerTypes[state.selectedTower].name} (${towerTypes[state.selectedTower].cost})`;
+let playing = false;
+let lastTime = 0;
+let animationId = null;
 
-function toPixels(cell) {
-  return {
-    x: cell.c * CELL + CELL / 2,
-    y: cell.r * CELL + CELL / 2
-  };
-}
-
-const pathPoints = pathCells.map(toPixels);
-
-function lerp(a, b, t) {
-  return a + (b - a) * t;
-}
-
-function withAlpha(hex, alpha) {
-  const clean = hex.replace('#', '');
-  const num = parseInt(clean, 16);
-  const r = (num >> 16) & 255;
-  const g = (num >> 8) & 255;
-  const b = num & 255;
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-}
-
-function roundRect(ctx, x, y, w, h, r) {
-  const radius = Math.min(r, w / 2, h / 2);
-  ctx.beginPath();
-  ctx.moveTo(x + radius, y);
-  ctx.lineTo(x + w - radius, y);
-  ctx.arcTo(x + w, y, x + w, y + radius, radius);
-  ctx.lineTo(x + w, y + h - radius);
-  ctx.arcTo(x + w, y + h, x + w - radius, y + h, radius);
-  ctx.lineTo(x + radius, y + h);
-  ctx.arcTo(x, y + h, x, y + h - radius, radius);
-  ctx.lineTo(x, y + radius);
-  ctx.arcTo(x, y, x + radius, y, radius);
-}
-
-class Enemy {
-  constructor(waveData) {
-    this.maxHp = waveData.hp;
-    this.hp = waveData.hp;
-    this.speed = waveData.speed;
-    this.reward = waveData.reward;
-    this.armor = waveData.armor ?? 0;
-    this.tint = waveData.tint;
-    this.segment = 0;
-    this.progress = 0;
-    this.radius = waveData.boss ? 16 : 12;
-    this.isDead = false;
-    this.slowTimer = 0;
-    this.speedFactor = 1;
-    this.isBoss = Boolean(waveData.boss);
-  }
-
-  update(dt) {
-    if (this.isDead) return;
-    let remaining = this.speed * this.speedFactor * dt;
-    while (remaining > 0 && this.segment < pathPoints.length - 1) {
-      const from = pathPoints[this.segment];
-      const to = pathPoints[this.segment + 1];
-      const dx = to.x - from.x;
-      const dy = to.y - from.y;
-      const dist = Math.hypot(dx, dy);
-      const segmentRemaining = dist * (1 - this.progress);
-
-      if (remaining < segmentRemaining) {
-        this.progress += remaining / dist;
-        remaining = 0;
-      } else {
-        remaining -= segmentRemaining;
-        this.segment++;
-        this.progress = 0;
-      }
-    }
-
-    if (this.segment >= pathPoints.length - 1) {
-      this.isDead = true;
-      state.lives = Math.max(0, state.lives - 1);
-      state.message = 'Egy egység áttört!';
-    }
-
-    if (this.slowTimer > 0) {
-      this.slowTimer -= dt;
-      if (this.slowTimer <= 0) {
-        this.speedFactor = 1;
-      }
-    }
-  }
-
-  draw(ctx) {
-    if (this.isDead) return;
-    const pos = this.position();
-    const pct = this.hp / this.maxHp;
-
-    ctx.save();
-    ctx.translate(pos.x, pos.y);
-    ctx.fillStyle = this.tint;
-    ctx.shadowColor = this.tint;
-    ctx.shadowBlur = 14;
-    ctx.beginPath();
-    ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.shadowBlur = 0;
-    ctx.strokeStyle = '#0f172a';
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.arc(0, 0, this.radius + 2, Math.PI * 1.1, Math.PI * 1.9);
-    ctx.stroke();
-
-    ctx.fillStyle = '#0f172a';
-    ctx.fillRect(-18, -24, 36, 7);
-    ctx.fillStyle = pct > 0.6 ? '#22c55e' : '#fbbf24';
-    if (pct <= 0.25) ctx.fillStyle = '#f87171';
-    ctx.fillRect(-18, -24, 36 * pct, 7);
-    ctx.restore();
-  }
-
-  position() {
-    const from = pathPoints[this.segment] ?? pathPoints[0];
-    const to = pathPoints[this.segment + 1] ?? pathPoints[pathPoints.length - 1];
-    return {
-      x: lerp(from.x, to.x, this.progress),
-      y: lerp(from.y, to.y, this.progress)
-    };
-  }
-
-  takeDamage(amount) {
-    const mitigated = amount * (1 - this.armor);
-    this.hp -= mitigated;
-    if (this.hp <= 0 && !this.isDead) {
-      this.isDead = true;
-      state.gold += this.reward;
-      state.message = this.isBoss ? 'Főellenség elfüstölt!' : 'Ellenség legyőzve – bónusz arany!';
-    }
-  }
-
-  applySlow(factor, duration) {
-    this.speedFactor = Math.min(this.speedFactor, factor);
-    this.slowTimer = Math.max(this.slowTimer, duration);
-  }
-}
-
-class Tower {
-  constructor(col, row, typeKey) {
-    this.col = col;
-    this.row = row;
-    this.x = col * CELL + CELL / 2;
-    this.y = row * CELL + CELL / 2;
-    this.type = typeKey;
-    this.config = towerTypes[typeKey];
-    this.range = this.config.range;
-    this.cooldown = 0;
-    this.fireDelay = 1 / this.config.fireRate;
-  }
-
-  update(dt) {
-    this.cooldown -= dt;
-    if (this.cooldown <= 0) {
-      const target = this.findTarget();
-      if (target) {
-        this.fire(target);
-        this.cooldown = this.fireDelay;
-      }
-    }
-  }
-
-  findTarget() {
-    let chosen = null;
-    let bestProgress = -Infinity;
-    for (const enemy of state.enemies) {
-      if (enemy.isDead) continue;
-      const pos = enemy.position();
-      const dist = Math.hypot(pos.x - this.x, pos.y - this.y);
-      if (dist <= this.range) {
-        const progressScore = enemy.segment + enemy.progress;
-        if (progressScore > bestProgress) {
-          bestProgress = progressScore;
-          chosen = enemy;
-        }
-      }
-    }
-    return chosen;
-  }
-
-  fire(target) {
-    state.bullets.push(new Bullet(this.x, this.y, target, this.type, this.config));
-  }
-
-  draw(ctx) {
-    ctx.save();
-    ctx.translate(this.x, this.y);
-
-    const gradient = ctx.createLinearGradient(-12, -12, 12, 12);
-    gradient.addColorStop(0, '#7c3aed');
-    gradient.addColorStop(1, '#22d3ee');
-    ctx.fillStyle = gradient;
-    ctx.strokeStyle = '#0f172a';
-    ctx.lineWidth = 3;
-
-    ctx.beginPath();
-    ctx.arc(0, 0, 14, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.fillStyle = 'rgba(255,255,255,0.55)';
-    ctx.beginPath();
-    ctx.arc(0, 0, 6, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-  }
-}
-
-class Bullet {
-  constructor(x, y, target, typeKey, config) {
-    this.x = x;
-    this.y = y;
-    this.target = target;
-    this.type = typeKey;
-    this.config = config;
-    this.speed = config.bulletSpeed;
-    this.damage = config.damage;
-  }
-
-  update(dt) {
-    if (!this.target || this.target.isDead) return true;
-    const pos = this.target.position();
-    const dx = pos.x - this.x;
-    const dy = pos.y - this.y;
-    const dist = Math.hypot(dx, dy);
-    if (dist < 6) {
-      this.target.takeDamage(this.damage);
-      if (this.config.slow && !this.target.isDead) {
-        this.target.applySlow(this.config.slow.amount, this.config.slow.duration);
-      }
-      if (this.config.chain) {
-        const nearby = state.enemies.find(e => !e.isDead && e !== this.target && Math.hypot(e.position().x - pos.x, e.position().y - pos.y) <= this.config.chain.range);
-        if (nearby) {
-          nearby.takeDamage(this.damage * this.config.chain.falloff);
-        }
-      }
-      return true;
-    }
-    const move = this.speed * dt;
-    const nx = dx / dist;
-    const ny = dy / dist;
-    this.x += nx * Math.min(move, dist);
-    this.y += ny * Math.min(move, dist);
-    return false;
-  }
-
-  draw(ctx) {
-    if (!this.target || this.target.isDead) return;
-    ctx.save();
-    ctx.strokeStyle = withAlpha(this.config.color, 0.9);
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(this.x, this.y);
-    ctx.lineTo(this.target.position().x, this.target.position().y);
-    ctx.stroke();
-    ctx.restore();
-  }
-}
-
-function isPathCell(col, row) {
-  return pathCells.some((cell, i) => {
-    const next = pathCells[i + 1];
-    if (!next) return col === cell.c && row === cell.r;
-    const minC = Math.min(cell.c, next.c);
-    const maxC = Math.max(cell.c, next.c);
-    const minR = Math.min(cell.r, next.r);
-    const maxR = Math.max(cell.r, next.r);
-    return col >= minC && col <= maxC && row >= minR && row <= maxR;
-  });
-}
-
-function screenToGrid(event) {
-  const rect = canvas.getBoundingClientRect();
-  const scaleX = canvas.width / rect.width;
-  const scaleY = canvas.height / rect.height;
-  const x = (event.clientX - rect.left) * scaleX;
-  const y = (event.clientY - rect.top) * scaleY;
-  return { col: Math.floor(x / CELL), row: Math.floor(y / CELL) };
-}
-
-function handleCanvasClick(event) {
-  const { col, row } = screenToGrid(event);
-  if (col < 0 || col >= COLS || row < 0 || row >= ROWS) return;
-  if (isPathCell(col, row)) {
-    state.message = 'Az ösvényre nem építhetsz!';
-    return;
-  }
-  const occupied = state.towers.some(t => t.col === col && t.row === row);
-  if (occupied) {
-    state.message = 'Itt már áll egy torony.';
-    return;
-  }
-
-  const config = towerTypes[state.selectedTower];
-  if (state.gold < config.cost) {
-    state.message = `Nincs elég aranyod (${config.cost}) ehhez a toronyhoz.`;
-    return;
-  }
-
-  state.gold -= config.cost;
-  state.towers.push(new Tower(col, row, state.selectedTower));
-  state.message = `${config.name} felállítva!`;
-}
-
-canvas.addEventListener('click', handleCanvasClick);
-
-canvas.addEventListener('mousemove', event => {
-  const { col, row } = screenToGrid(event);
-  const inBounds = col >= 0 && col < COLS && row >= 0 && row < ROWS;
-  if (!inBounds) {
-    state.hover = null;
-    return;
-  }
-  const config = towerTypes[state.selectedTower];
-  const occupied = state.towers.some(t => t.col === col && t.row === row);
-  const valid = !isPathCell(col, row) && !occupied && state.gold >= config.cost;
-  state.hover = { col, row, valid, config };
+startButton.addEventListener('click', () => {
+  if (playing) return;
+  resetEnemy();
+  playing = true;
+  startButton.disabled = true;
+  lastTime = performance.now();
+  animationId = requestAnimationFrame(update);
 });
 
-canvas.addEventListener('mouseleave', () => {
-  state.hover = null;
-});
-
-startBtn.addEventListener('click', () => {
-  if (state.waveIndex >= waves.length - 1 && !state.running && state.enemies.length === 0) {
-    state.message = 'Már minden hullámot túléltél!';
-    return;
-  }
-  if (state.running) {
-    state.message = 'A hullám már folyamatban van!';
-    return;
-  }
-  startNextWave();
-});
-
-resetBtn.addEventListener('click', resetGame);
-
-speedSelect.addEventListener('change', () => {
-  state.speed = Number(speedSelect.value);
-});
-
-towerButtons.forEach(btn => {
-  btn.addEventListener('click', () => {
-    const towerKey = btn.dataset.tower;
-    state.selectedTower = towerKey;
-    towerButtons.forEach(b => b.classList.toggle('active', b.dataset.tower === towerKey));
-    updateTowerHud();
-    state.message = `${towerTypes[towerKey].name} kiválasztva. Kattints a lerakáshoz!`;
-  });
-});
-
-function startNextWave() {
-  if (state.waveIndex >= waves.length - 1) return;
-  state.waveIndex++;
-  state.spawned = 0;
-  state.spawnTimer = 0;
-  state.running = true;
-  const waveInfo = waves[state.waveIndex];
-  state.message = waveInfo.boss ? 'Főellenség érkezik! Készülj!' : `Hullám #${state.waveIndex + 1} elindult!`;
+function resetEnemy() {
+  enemy.x = pathPoints[0].x;
+  enemy.y = pathPoints[0].y;
+  enemy.segmentIndex = 0;
+  enemy.progress = 0;
+  enemy.trail = [];
 }
 
-function resetGame() {
-  state.gold = 120;
-  state.lives = 20;
-  state.waveIndex = -1;
-  state.enemies = [];
-  state.towers = [];
-  state.bullets = [];
-  state.running = false;
-  state.spawnTimer = 0;
-  state.spawned = 0;
-  state.message = 'Újrakezdve! Válassz tornyot és indítsd a hullámot.';
+function update(timestamp) {
+  const delta = (timestamp - lastTime) / 1000;
+  lastTime = timestamp;
+
+  moveEnemy(delta);
+  drawScene();
+
+  if (playing) {
+    animationId = requestAnimationFrame(update);
+  }
 }
 
-function spawnEnemy(dt) {
-  const wave = waves[state.waveIndex];
-  if (!wave) return;
-  const spawnInterval = Math.max(0.45, 1 - state.waveIndex * 0.05);
-  state.spawnTimer += dt * state.speed;
-  if (state.spawnTimer >= spawnInterval && state.spawned < wave.count) {
-    state.spawnTimer = 0;
-    state.spawned++;
-    state.enemies.push(new Enemy(wave));
-  }
+function moveEnemy(deltaSeconds) {
+  let remaining = deltaSeconds;
 
-  if (state.spawned >= wave.count && state.enemies.every(e => e.isDead)) {
-    state.running = false;
-    if (state.waveIndex >= waves.length - 1) {
-      if (state.lives > 0) state.message = 'Győzelem! Minden hullámot megállítottál.';
+  while (remaining > 0 && enemy.segmentIndex < pathPoints.length - 1) {
+    const from = pathPoints[enemy.segmentIndex];
+    const to = pathPoints[enemy.segmentIndex + 1];
+    const dx = to.x - from.x;
+    const dy = to.y - from.y;
+    const segLen = Math.hypot(dx, dy);
+    const distFrame = enemy.speed * remaining;
+    const distLeft = (1 - enemy.progress) * segLen;
+
+    if (distFrame < distLeft) {
+      enemy.progress += distFrame / segLen;
+      remaining = 0;
     } else {
-      state.message = 'Hullám vége! Jöhet a következő.';
+      remaining -= distLeft / enemy.speed;
+      enemy.segmentIndex += 1;
+      enemy.progress = 0;
     }
+
+    const t = enemy.progress;
+    enemy.x = from.x + dx * t;
+    enemy.y = from.y + dy * t;
+  }
+
+  // Trail rögzítése az út mentén.
+  enemy.trail.push({ x: enemy.x, y: enemy.y, life: 1 });
+  enemy.trail = enemy.trail.slice(-40);
+
+  // Végpont elérése.
+  if (enemy.segmentIndex >= pathPoints.length - 1) {
+    const lastPoint = pathPoints[pathPoints.length - 1];
+    enemy.x = lastPoint.x;
+    enemy.y = lastPoint.y;
+    playing = false;
+    startButton.disabled = false;
+    cancelAnimationFrame(animationId);
   }
 }
 
-function update(dt) {
-  if (state.running) {
-    spawnEnemy(dt);
-  }
-
-  state.enemies.forEach(e => e.update(dt * state.speed));
-
-  state.towers.forEach(t => t.update(dt * state.speed));
-
-  state.bullets = state.bullets.filter(b => !b.update(dt * state.speed));
-
-  state.enemies = state.enemies.filter(e => !e.isDead);
-
-  if (state.lives <= 0) {
-    state.running = false;
-    state.message = 'Elbuktad a kristályt! Próbáld újra az Újrakezdés gombbal.';
-  }
+function drawScene() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  drawSky();
+  drawPath();
+  drawTrail();
+  drawEnemy();
 }
 
-function drawGrid() {
-  ctx.save();
-  ctx.lineWidth = 1;
-  ctx.strokeStyle = '#111827';
-  for (let c = 0; c <= COLS; c++) {
-    ctx.beginPath();
-    ctx.moveTo(c * CELL, 0);
-    ctx.lineTo(c * CELL, canvas.height);
-    ctx.stroke();
-  }
-  for (let r = 0; r <= ROWS; r++) {
-    ctx.beginPath();
-    ctx.moveTo(0, r * CELL);
-    ctx.lineTo(canvas.width, r * CELL);
-    ctx.stroke();
-  }
-  ctx.restore();
+function drawSky() {
+  const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+  gradient.addColorStop(0, '#e0f2fe');
+  gradient.addColorStop(0.5, '#f8fafc');
+  gradient.addColorStop(1, '#fff7ed');
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 }
 
 function drawPath() {
-  ctx.save();
-  ctx.fillStyle = 'rgba(16, 185, 129, 0.18)';
-  ctx.strokeStyle = 'rgba(16, 185, 129, 0.6)';
-  ctx.lineWidth = 3;
-  pathCells.forEach((cell, i) => {
-    const next = pathCells[i + 1];
-    if (!next) return;
-    const minC = Math.min(cell.c, next.c);
-    const maxC = Math.max(cell.c, next.c);
-    const minR = Math.min(cell.r, next.r);
-    const maxR = Math.max(cell.r, next.r);
-    const width = (maxC - minC + 1) * CELL;
-    const height = (maxR - minR + 1) * CELL;
-    roundRect(ctx, minC * CELL, minR * CELL, width, height, 6);
-    ctx.fill();
-    ctx.stroke();
+  ctx.lineWidth = 26;
+  ctx.strokeStyle = '#c8f169';
+  ctx.lineJoin = 'round';
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  pathPoints.forEach((p, i) => {
+    if (i === 0) {
+      ctx.moveTo(p.x, p.y);
+    } else {
+      ctx.lineTo(p.x, p.y);
+    }
   });
+  ctx.stroke();
 
-  const startPos = toPixels(pathCells[0]);
-  const endPos = toPixels(pathCells[pathCells.length - 1]);
-
-  ctx.fillStyle = '#22c55e';
+  ctx.lineWidth = 4;
+  ctx.strokeStyle = '#5c7c1f';
   ctx.beginPath();
-  ctx.arc(startPos.x, startPos.y, 12, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.fillStyle = '#ef4444';
-  ctx.beginPath();
-  ctx.arc(endPos.x, endPos.y, 12, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.restore();
+  pathPoints.forEach((p, i) => {
+    if (i === 0) ctx.moveTo(p.x, p.y);
+    else ctx.lineTo(p.x, p.y);
+  });
+  ctx.stroke();
 }
 
-function drawGhostPlacement() {
-  if (!state.hover) return;
-  const { col, row, valid, config } = state.hover;
-  const x = col * CELL + CELL / 2;
-  const y = row * CELL + CELL / 2;
-  ctx.save();
-  ctx.fillStyle = valid ? withAlpha(config.color, 0.2) : 'rgba(248, 113, 113, 0.25)';
-  ctx.strokeStyle = valid ? withAlpha(config.color, 0.45) : 'rgba(248, 113, 113, 0.7)';
+function drawTrail() {
+  enemy.trail.forEach((dot, index) => {
+    const alpha = (index + 1) / enemy.trail.length;
+    ctx.fillStyle = `rgba(6, 182, 212, ${alpha * 0.6})`;
+    ctx.beginPath();
+    ctx.arc(dot.x, dot.y, 8 * alpha, 0, Math.PI * 2);
+    ctx.fill();
+  });
+}
+
+function drawEnemy() {
+  const pulse = 2 + Math.sin(performance.now() / 200) * 1.6;
+  ctx.fillStyle = '#ef4444';
+  ctx.strokeStyle = '#0f172a';
   ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.arc(x, y, config.range, 0, Math.PI * 2);
+  ctx.arc(enemy.x, enemy.y, 12 + pulse, 0, Math.PI * 2);
   ctx.fill();
   ctx.stroke();
 
-  ctx.fillStyle = valid ? withAlpha(config.color, 0.8) : 'rgba(248, 113, 113, 0.9)';
-  ctx.strokeStyle = '#0f172a';
-  ctx.lineWidth = 3;
+  // Kis csillanás a tetején.
+  ctx.fillStyle = '#fef2f2';
   ctx.beginPath();
-  ctx.arc(x, y, 14, 0, Math.PI * 2);
+  ctx.arc(enemy.x - 4, enemy.y - 6, 4, 0, Math.PI * 2);
   ctx.fill();
-  ctx.stroke();
-  ctx.restore();
 }
 
-function drawTowers() {
-  state.towers.forEach(tower => tower.draw(ctx));
-}
-
-function drawBullets() {
-  ctx.save();
-  ctx.globalCompositeOperation = 'lighter';
-  state.bullets.forEach(b => b.draw(ctx));
-  ctx.restore();
-}
-
-function drawEnemies() {
-  state.enemies.forEach(e => e.draw(ctx));
-}
-
-function drawRangeHighlights() {
-  ctx.save();
-  state.towers.forEach(t => {
-    ctx.fillStyle = withAlpha(t.config.color, 0.08);
-    ctx.strokeStyle = withAlpha(t.config.color, 0.2);
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.arc(t.x, t.y, t.range, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-  });
-  ctx.restore();
-}
-
-function drawMessage() {
-  ctx.save();
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
-  ctx.fillRect(16, canvas.height - 62, canvas.width - 32, 46);
-  ctx.fillStyle = '#e5e7eb';
-  ctx.font = '600 16px "Inter", "Segoe UI", sans-serif';
-  ctx.fillText(state.message, 28, canvas.height - 32);
-  ctx.restore();
-}
-
-function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  drawGrid();
-  drawPath();
-  drawGhostPlacement();
-  drawRangeHighlights();
-  drawTowers();
-  drawBullets();
-  drawEnemies();
-  drawMessage();
-}
-
-function updateTowerHud() {
-  const config = towerTypes[state.selectedTower];
-  towerNameEl.textContent = `${config.name} (${config.cost})`;
-}
-
-function updateHud() {
-  goldEl.textContent = Math.floor(state.gold);
-  livesEl.textContent = state.lives;
-  waveEl.textContent = `${Math.max(state.waveIndex + 1, 0)} / ${waves.length}`;
-  enemiesEl.textContent = state.enemies.filter(e => !e.isDead).length;
-}
-
-let lastTime = performance.now();
-function tick(now) {
-  const dt = (now - lastTime) / 1000;
-  lastTime = now;
-  update(dt);
-  draw();
-  updateHud();
-  requestAnimationFrame(tick);
-}
-
-resetGame();
-updateTowerHud();
-tick(lastTime);
-
-console.log('TD Academy v0.2.0 betöltve');
+// Rajzoljuk ki az alap állapotot, hogy Start előtt is látszódjon a pálya.
+drawScene();
