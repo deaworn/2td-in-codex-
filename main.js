@@ -89,7 +89,8 @@ const state = {
   spawned: 0,
   message: 'Készen állsz! Válassz tornyot és kattints a pályára.',
   speed: 1,
-  selectedTower: 'flame'
+  selectedTower: 'flame',
+  hover: null
 };
 
 towerNameEl.textContent = `${towerTypes[state.selectedTower].name} (${towerTypes[state.selectedTower].cost})`;
@@ -369,13 +370,17 @@ function isPathCell(col, row) {
   });
 }
 
-function handleCanvasClick(event) {
+function screenToGrid(event) {
   const rect = canvas.getBoundingClientRect();
-  const x = event.clientX - rect.left;
-  const y = event.clientY - rect.top;
-  const col = Math.floor(x / CELL);
-  const row = Math.floor(y / CELL);
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+  const x = (event.clientX - rect.left) * scaleX;
+  const y = (event.clientY - rect.top) * scaleY;
+  return { col: Math.floor(x / CELL), row: Math.floor(y / CELL) };
+}
 
+function handleCanvasClick(event) {
+  const { col, row } = screenToGrid(event);
   if (col < 0 || col >= COLS || row < 0 || row >= ROWS) return;
   if (isPathCell(col, row)) {
     state.message = 'Az ösvényre nem építhetsz!';
@@ -399,6 +404,23 @@ function handleCanvasClick(event) {
 }
 
 canvas.addEventListener('click', handleCanvasClick);
+
+canvas.addEventListener('mousemove', event => {
+  const { col, row } = screenToGrid(event);
+  const inBounds = col >= 0 && col < COLS && row >= 0 && row < ROWS;
+  if (!inBounds) {
+    state.hover = null;
+    return;
+  }
+  const config = towerTypes[state.selectedTower];
+  const occupied = state.towers.some(t => t.col === col && t.row === row);
+  const valid = !isPathCell(col, row) && !occupied && state.gold >= config.cost;
+  state.hover = { col, row, valid, config };
+});
+
+canvas.addEventListener('mouseleave', () => {
+  state.hover = null;
+});
 
 startBtn.addEventListener('click', () => {
   if (state.waveIndex >= waves.length - 1 && !state.running && state.enemies.length === 0) {
@@ -544,6 +566,30 @@ function drawPath() {
   ctx.restore();
 }
 
+function drawGhostPlacement() {
+  if (!state.hover) return;
+  const { col, row, valid, config } = state.hover;
+  const x = col * CELL + CELL / 2;
+  const y = row * CELL + CELL / 2;
+  ctx.save();
+  ctx.fillStyle = valid ? withAlpha(config.color, 0.2) : 'rgba(248, 113, 113, 0.25)';
+  ctx.strokeStyle = valid ? withAlpha(config.color, 0.45) : 'rgba(248, 113, 113, 0.7)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(x, y, config.range, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle = valid ? withAlpha(config.color, 0.8) : 'rgba(248, 113, 113, 0.9)';
+  ctx.strokeStyle = '#0f172a';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.arc(x, y, 14, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+  ctx.restore();
+}
+
 function drawTowers() {
   state.towers.forEach(tower => tower.draw(ctx));
 }
@@ -587,6 +633,7 @@ function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   drawGrid();
   drawPath();
+  drawGhostPlacement();
   drawRangeHighlights();
   drawTowers();
   drawBullets();
