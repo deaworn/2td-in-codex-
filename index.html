@@ -3,14 +3,120 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TD Academy v0.0.1</title>
+  <title>TD Academy v0.6.1</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <main class="layout" aria-label="TD Academy kezdőlap">
-    <h1>TD Academy</h1>
-  </main>
-  <div class="version">v0.0.1</div>
+  <div class="scene-shell">
+    <div class="scene" role="application" aria-label="TD Academy pálya (1920x1080)">
+      <canvas id="board" width="1920" height="1080" aria-label="Tower defense pálya"></canvas>
+
+      <header class="top-bar">
+        <div class="stat-line">
+          <span class="stat-pill">
+            <span class="icon">❤️</span>
+            <span id="lives">20</span>
+          </span>
+          <span class="stat-pill">
+            <span class="icon">🌊</span>
+            <span id="wave">0 / 9</span>
+          </span>
+          <span class="stat-pill">
+            <span class="icon">💰</span>
+            <span id="gold">120</span>
+          </span>
+          <span class="stat-pill">
+            <span class="icon">⚡</span>
+            <span id="upgradePoints">0</span>
+          </span>
+        </div>
+        <div class="controls">
+          <button id="startWave" class="btn primary">
+            <span class="icon">▶</span>
+            <span>Start / Következő</span>
+          </button>
+          <button id="resetGame" class="btn ghost">
+            <span class="icon">↺</span>
+            <span>Újrakezdés</span>
+          </button>
+          <label class="speed">
+            <span class="pill-label">
+              <span class="icon">⏩</span>
+              <span class="speed-text" id="speedText">1x</span>
+            </span>
+            <select id="speedSelect" aria-label="Játék sebessége">
+              <option value="1">1x</option>
+              <option value="1.5">1.5x</option>
+              <option value="2">2x</option>
+            </select>
+          </label>
+        </div>
+      </header>
+
+      <aside class="right-panel" aria-label="Toronyválasztó">
+        <button class="tower-btn active" data-tower="flame">
+          <span class="icon">🟠</span>
+          <span class="tower-name">Láng</span>
+        </button>
+        <button class="tower-btn" data-tower="frost">
+          <span class="icon">❄️</span>
+          <span class="tower-name">Fagy</span>
+        </button>
+        <button class="tower-btn" data-tower="tesla">
+          <span class="icon">⚡</span>
+          <span class="tower-name">Szikra</span>
+        </button>
+        <button class="tower-btn ghost" disabled>
+          <span class="icon">🔒</span>
+          <span class="tower-name">Lock</span>
+        </button>
+        <button class="tower-btn ghost" disabled>
+          <span class="icon">🔒</span>
+          <span class="tower-name">Lock</span>
+        </button>
+      </aside>
+
+      <footer class="bottom-bar">
+        <button class="btn ghost pill" id="openHelp">
+          <span class="icon">❓</span>
+          <span>Tippek</span>
+        </button>
+        <div class="bar-group">
+          <div class="bar">
+            <span>Upgrade</span>
+            <div class="progress"><span style="width: 40%;"></span></div>
+          </div>
+          <div class="bar">
+            <span>Stats</span>
+            <div class="progress"><span style="width: 60%;"></span></div>
+          </div>
+          <div class="bar">
+            <span>Reset</span>
+            <div class="progress"><span style="width: 20%;"></span></div>
+          </div>
+        </div>
+      </footer>
+
+      <div class="version-tag" id="versionBadge">v0.6.1</div>
+
+      <div class="modal" id="helpModal" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h2 id="helpTitle">Gyors súgó</h2>
+            <button class="btn ghost icon-only" id="closeHelp" aria-label="Bezárás">✕</button>
+          </div>
+          <div class="modal-body">
+            <ul>
+              <li>Koppints vagy kattints a pályán a torony lerakásához. A zöld út kizárva.</li>
+              <li>Fejlesztéshez kattints a toronyra; 1 pont/szint.</li>
+              <li>A fenti Start gomb indítja a hullámot; Reset visszaállít.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="main.js"></script>
 </body>
 </html>
