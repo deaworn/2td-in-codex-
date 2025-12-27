@@ -3,14 +3,178 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TD Academy v0.0.1</title>
+  <title>TD Academy v0.5.0</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <main class="layout" aria-label="TD Academy kezdőlap">
-    <h1>TD Academy</h1>
+    <header class="hero">
+      <div class="title-wrap">
+        <p class="eyebrow">Tower Defense Műhely</p>
+        <h1>TD Academy</h1>
+        <p class="subtitle">Építs tornyokat, tartsd vissza a hullámokat, és védd meg a kristályt az inváziótól.</p>
+      </div>
+      <div class="controls">
+        <button id="startWave" class="btn primary">
+          <span class="icon">▶</span>
+          <span>Start / Következő hullám</span>
+        </button>
+        <button id="resetGame" class="btn ghost">
+          <span class="icon">↺</span>
+          <span>Újrakezdés</span>
+        </button>
+        <label class="speed">
+          <span class="icon">⏩</span>
+          <span>Játékmenet</span>
+          <select id="speedSelect" aria-label="Játék sebessége">
+            <option value="1">1x</option>
+            <option value="1.5">1.5x</option>
+            <option value="2">2x</option>
+          </select>
+        </label>
+        <button id="openHelp" class="btn ghost pill">
+          <span class="icon">❓</span>
+          <span>Segítség</span>
+        </button>
+      </div>
+    </header>
+
+    <section class="hud" aria-label="Játék állapota">
+      <div class="stat">
+        <p class="label"><span class="icon">💰</span> Arany</p>
+        <p class="value" id="gold">120</p>
+      </div>
+      <div class="stat">
+        <p class="label"><span class="icon">❤️</span> Életerő</p>
+        <p class="value" id="lives">20</p>
+      </div>
+      <div class="stat">
+        <p class="label"><span class="icon">🌊</span> Hullám</p>
+        <p class="value" id="wave">0 / 9</p>
+      </div>
+      <div class="stat">
+        <p class="label"><span class="icon">👾</span> Ellenségek</p>
+        <p class="value" id="enemies">0</p>
+      </div>
+      <div class="stat">
+        <p class="label"><span class="icon">🗼</span> Kiválasztott torony</p>
+        <p class="value" id="towerName">Lángtorony (45)</p>
+      </div>
+      <div class="stat">
+        <p class="label"><span class="icon">⚡</span> Fejlesztési pont</p>
+        <p class="value" id="upgradePoints">0</p>
+      </div>
+    </section>
+
+    <section class="towers" aria-label="Toronyválasztó">
+      <div class="tower-grid">
+        <button class="tower-btn active" data-tower="flame">
+          <span class="tower-title">Lángtorony</span>
+          <span class="tower-meta">45 arany • egyenes sebzés</span>
+        </button>
+        <button class="tower-btn" data-tower="frost">
+          <span class="tower-title">Fagyasztó torony</span>
+          <span class="tower-meta">55 arany • lassítás</span>
+        </button>
+        <button class="tower-btn" data-tower="tesla">
+          <span class="tower-title">Szikra torony</span>
+          <span class="tower-meta">70 arany • láncsebzés</span>
+        </button>
+      </div>
+      <div class="chip-row">
+        <span class="chip"><span class="icon">👆</span> Tap & Drag a pályán</span>
+        <span class="chip"><span class="icon">🎯</span> Színes aura = hatótáv</span>
+        <span class="chip"><span class="icon">💎</span> Út kizárva: zöld sáv</span>
+      </div>
+    </section>
+
+    <section class="board-wrap" aria-label="Játéktér">
+      <div class="canvas-hint">Kattints a mezőre tornyok lerakásához. A zöld út a támadók haladási iránya.</div>
+      <div class="board-shell">
+        <canvas id="board" width="900" height="540" role="img" aria-label="Tower defense pálya"></canvas>
+        <div class="board-overlay">
+          <div class="bubble">
+            <span class="icon">🤏</span>
+            <div>
+              <strong>Érintésre optimalizálva</strong>
+              <p class="microcopy">Koppints a szabad mezőkre a torony lerakásához.</p>
+            </div>
+          </div>
+          <div class="board-actions">
+            <button class="btn primary compact" id="startWaveBoard">
+              <span class="icon">▶</span><span>Indítás</span>
+            </button>
+            <button class="btn ghost compact" id="resetBoard">
+              <span class="icon">↺</span><span>Reset</span>
+            </button>
+          </div>
+        </div>
+        <div class="board-meta">
+          <span class="badge subtle" aria-label="Verzió" id="versionBadge">v0.5.0</span>
+          <span class="badge info" aria-label="Nézet módja">
+            <span class="icon">📱</span>
+            <span>Érintés + kattintás</span>
+          </span>
+        </div>
+      </div>
+    </section>
+
+    <section class="info-grid">
+      <article class="card">
+        <h2>Taktika</h2>
+        <ul>
+          <li>Kattints a szabad mezőkre: Lángtorony (45 arany) tüzel a legközelebbi egységre.</li>
+          <li>A Fagyasztó torony lassítja a célpontot, a Szikra torony pedig a következő közeli egységre is továbbugrik.</li>
+          <li>A tornyok kör hatótávját lerakáskor színes aura jelöli.</li>
+          <li>Az ellenségek kiiktatása aranyat ad, amit új tornyokra költhetsz.</li>
+        </ul>
+      </article>
+      <article class="card">
+        <h2>Fejlesztések</h2>
+        <ul>
+          <li>Minden hullám vége: +1 fejlesztési pont. A főellenség: +2 pont.</li>
+          <li>Kattints egy saját toronyra: +1 szint, 1 pontért.</li>
+          <li>Minden szint: +15% sebzés, +6% hatótáv, +0.07 tűzgyorsaság.</li>
+        </ul>
+      </article>
+      <article class="card">
+        <h2>Hullámok</h2>
+        <ul>
+          <li>8 változatos hullám, gyorsuló és páncélozott egységekkel.</li>
+          <li>Ha egy egység eléri a kristályt, 1 életet veszítesz.</li>
+          <li>Vesztettél, ha az életek 0-ra csökkennek. Győztél, ha túléled az összes hullámot!</li>
+        </ul>
+      </article>
+      <article class="card">
+        <h2>Tippek</h2>
+        <ul>
+          <li>Nyisd meg a 2x sebességet, ha már stabil a védelmed.</li>
+          <li>Próbáld a kanyaroknál sűríteni a tüzet, így hosszabb ideig ér a sebzés.</li>
+          <li>Ha elrontottad a kezdést, az <strong>Újrakezdés</strong> gombbal azonnal újrapróbálhatod.</li>
+        </ul>
+      </article>
+    </section>
   </main>
-  <div class="version">v0.0.1</div>
+  <div class="modal" id="helpModal" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="helpTitle">Gyors súgó</h2>
+        <button class="btn ghost icon-only" id="closeHelp" aria-label="Bezárás">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="chips">
+          <span class="chip"><span class="icon">🟠</span> Láng: gyors sebzés</span>
+          <span class="chip"><span class="icon">❄️</span> Fagy: lassítás</span>
+          <span class="chip"><span class="icon">⚡</span> Szikra: láncsebzés</span>
+        </div>
+        <ul>
+          <li>Érintsd vagy kattints a pálya szabad mezőit a lerakáshoz. A piros jelzés foglalt vagy útvonal.</li>
+          <li>A toronyra bökve fejleszthetsz (1 pont / szint). Hullám végén +1 pont, boss után +2.</li>
+          <li>A Start gomb mindig a felső vezérlősávban elérhető, mobilon is.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
   <script src="main.js"></script>
 </body>
 </html>
