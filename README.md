@@ -11,3 +11,7 @@ Nyisd meg az `index.html` fájlt egy modern böngészőben (asztali környezet a
 - **Szikra torony (70)**: láncsebzést okoz a közelben lévő második célpontra is.
 - Építéskor a pályán szellemkép mutatja a hatótávot és a foglaltságot; csak a zöld útvonalon kívül helyezhető el torony.
 - Hullámok után fejlesztési pontot kapsz, a főellenség további +2 pontot ad; kattints egy meglévő toronyra a pályán a szintlépéshez.
+
+## Fejlesztések
+- Fejlesztés költsége: 1 pont / szint. Hullám vége: +1 pont, főellenség: +2 pont.
+- Minden szint bónusza: +15% sebzés, +6% hatótáv, +0.07 tűzgyorsaság a toronyhoz és a lövedékhez.

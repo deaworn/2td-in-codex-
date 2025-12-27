@@ -505,6 +505,9 @@ function handleCanvasClick(event) {
     if (state.upgradePoints > 0) {
       const upgraded = towerHere.upgrade();
       if (upgraded) return;
+    } else {
+      state.message = 'Nincs elég fejlesztési pontod. Hullámok után kapsz +1-et, a boss +2-t ad.';
+      return;
     }
     state.message = 'Itt már áll egy torony. Fejlesztéshez szerezz pontot hullámokból!';
     return;
@@ -763,7 +766,7 @@ function draw() {
 
 function updateTowerHud() {
   const config = towerTypes[state.selectedTower];
-  towerNameEl.textContent = `${config.name} (${config.cost})`;
+  towerNameEl.textContent = `${config.name} (${config.cost}) • fejlesztés: 1 pont / szint`;
 }
 
 function updateHud() {
