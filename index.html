@@ -3,42 +3,62 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NEXUS Defense — Holografikus bemutató</title>
+  <title>NEXUS Defense v0.1.0</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <main class="layout" aria-label="NEXUS Defense holografikus összefoglaló">
     <header class="hero">
-      <p class="eyebrow">2247 • Starshell orbitális állomás</p>
-      <h1>NEXUS Defense</h1>
-      <p class="tagline">
-        Sci-fi tower defense 50 szinten át: neonrácsos pályák, biomechanikus rajok,
-        holografikus tornyok és egy mindent lezáró Nexus Core főellenség.
-      </p>
-      <div class="hero-actions">
-        <button id="startButton" type="button">Hologram futtatása</button>
-        <div class="meta">
-          <span class="pill">Tech Tree: Offense / Defense / Economy</span>
-          <span class="pill">Kihívás módok: Endless • Time Attack • Scarcity • Permadeath</span>
-        </div>
+      <p class="eyebrow">NEXUS Defense</p>
+      <h1>Starshell védelmi prototípus</h1>
+      <p class="tagline">Helyezz fel tornyokat, indítsd a hullámokat, védd a magot.</p>
+      <div class="cta-row">
+        <button id="startButton" type="button">Hullám indítása</button>
+        <span class="hint">1 / 2 / 3 billentyűvel váltasz tornyot, kattintással helyezel.</span>
       </div>
     </header>
 
-    <section class="stage" aria-label="Holografikus pálya szimuláció">
-      <div class="stage-header">
-        <div>
-          <p class="label">Szimuláció</p>
-          <h2>Holografikus rács • Neon pályák</h2>
-          <p class="muted">
-            A félig 3D perspektívájú játéktér neon kék-lila árnyalatokkal, a Starshell belsejének
-            hideg fém struktúrái és a kinti csillagos kozmosz villanásai között.
-          </p>
-        </div>
-        <div class="legend">
-          <span class="chip path">Út</span>
-          <span class="chip enemy">Alien Drone</span>
-          <span class="chip trail">Energia nyom</span>
-        </div>
+    <section class="hud">
+      <div class="stat">
+        <span class="label">Energia</span>
+        <span id="energyDisplay" class="value">--</span>
+      </div>
+      <div class="stat">
+        <span class="label">Élet</span>
+        <span id="lifeDisplay" class="value">--</span>
+      </div>
+      <div class="stat">
+        <span class="label">Hullám</span>
+        <span id="waveDisplay" class="value">--</span>
+      </div>
+      <div class="stat" id="statusDisplay">
+        <span class="label">Állapot</span>
+        <span class="value">Várakozás</span>
+      </div>
+    </section>
+
+    <section class="selector" aria-label="Torny választó">
+      <button class="tower" data-tower="laser" type="button">
+        <span class="title">Lézer torony</span>
+        <span class="meta">100 ⛁ • Gyors sebzés</span>
+      </button>
+      <button class="tower" data-tower="plasma" type="button">
+        <span class="title">Plazmaágyú</span>
+        <span class="meta">150 ⛁ • Páncél ellen</span>
+      </button>
+      <button class="tower" data-tower="chrono" type="button">
+        <span class="title">Idő-gyorsító</span>
+        <span class="meta">180 ⛁ • Lassít és buffol</span>
+      </button>
+    </section>
+
+    <section class="stage">
+      <canvas id="gameCanvas" width="900" height="480" aria-label="Játéktér"></canvas>
+      <div class="legend">
+        <span class="chip path">Út</span>
+        <span class="chip enemy">Ellenfél</span>
+        <span class="chip trail">Fénycsóva</span>
+        <span class="chip tower">Torony</span>
       </div>
       <canvas id="gameCanvas" width="900" height="480" aria-label="Játéktér"></canvas>
     </section>
