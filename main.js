@@ -1,12 +1,10 @@
-const VERSION = '0.5.0';
+const VERSION = '0.6.0';
 const canvas = document.getElementById('board');
 const ctx = canvas.getContext('2d');
 const versionBadge = document.getElementById('versionBadge');
 const helpModal = document.getElementById('helpModal');
 const openHelp = document.getElementById('openHelp');
 const closeHelp = document.getElementById('closeHelp');
-const startBtnBoard = document.getElementById('startWaveBoard');
-const resetBtnBoard = document.getElementById('resetBoard');
 
 const goldEl = document.getElementById('gold');
 const livesEl = document.getElementById('lives');
@@ -22,10 +20,10 @@ const towerButtons = Array.from(document.querySelectorAll('.tower-btn'));
 document.title = `TD Academy v${VERSION}`;
 if (versionBadge) versionBadge.textContent = `v${VERSION}`;
 
-const CELL = 45;
+const CELL = 60;
 const COLS = canvas.width / CELL;
 const ROWS = canvas.height / CELL;
-const RANGE = CELL * 3.1;
+const RANGE = CELL * 3;
 
 const towerTypes = {
   flame: {
@@ -66,16 +64,16 @@ const towerTypes = {
 };
 
 const pathCells = [
-  { c: 0, r: 3 },
-  { c: 4, r: 3 },
-  { c: 4, r: 1 },
-  { c: 9, r: 1 },
-  { c: 9, r: 5 },
-  { c: 13, r: 5 },
-  { c: 13, r: 9 },
-  { c: 17, r: 9 },
-  { c: 17, r: 6 },
-  { c: 19, r: 6 }
+  { c: 1, r: 10 },
+  { c: 7, r: 10 },
+  { c: 7, r: 6 },
+  { c: 13, r: 6 },
+  { c: 13, r: 12 },
+  { c: 19, r: 12 },
+  { c: 19, r: 8 },
+  { c: 26, r: 8 },
+  { c: 26, r: 4 },
+  { c: 31, r: 4 }
 ];
 
 const waves = [
