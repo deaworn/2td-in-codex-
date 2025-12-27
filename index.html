@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TD Academy v0.2.0</title>
+  <title>TD Academy v0.3.0</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -75,7 +75,13 @@
 
     <section class="board-wrap" aria-label="Játéktér">
       <div class="canvas-hint">Kattints a mezőre tornyok lerakásához. A zöld út a támadók haladási iránya.</div>
-      <canvas id="board" width="900" height="540" role="img" aria-label="Tower defense pálya"></canvas>
+      <div class="board-shell">
+        <canvas id="board" width="900" height="540" role="img" aria-label="Tower defense pálya"></canvas>
+        <div class="board-meta">
+          <span class="badge subtle" aria-label="Verzió" id="versionBadge">v0.3.0</span>
+          <span class="badge info" aria-label="Nézet módja">Mobilbarát pálya</span>
+        </div>
+      </div>
     </section>
 
     <section class="info-grid">
@@ -114,7 +120,6 @@
       </article>
     </section>
   </main>
-  <div class="version">v0.2.0</div>
   <script src="main.js"></script>
 </body>
 </html>

@@ -1,5 +1,7 @@
+const VERSION = '0.3.0';
 const canvas = document.getElementById('board');
 const ctx = canvas.getContext('2d');
+const versionBadge = document.getElementById('versionBadge');
 
 const goldEl = document.getElementById('gold');
 const livesEl = document.getElementById('lives');
@@ -11,6 +13,9 @@ const startBtn = document.getElementById('startWave');
 const resetBtn = document.getElementById('resetGame');
 const speedSelect = document.getElementById('speedSelect');
 const towerButtons = Array.from(document.querySelectorAll('.tower-btn'));
+
+document.title = `TD Academy v${VERSION}`;
+if (versionBadge) versionBadge.textContent = `v${VERSION}`;
 
 const CELL = 45;
 const COLS = canvas.width / CELL;
@@ -56,14 +61,16 @@ const towerTypes = {
 };
 
 const pathCells = [
-  { c: 0, r: 6 },
-  { c: 4, r: 6 },
+  { c: 0, r: 3 },
   { c: 4, r: 3 },
-  { c: 9, r: 3 },
-  { c: 9, r: 8 },
-  { c: 14, r: 8 },
-  { c: 14, r: 4 },
-  { c: 19, r: 4 }
+  { c: 4, r: 1 },
+  { c: 9, r: 1 },
+  { c: 9, r: 5 },
+  { c: 13, r: 5 },
+  { c: 13, r: 9 },
+  { c: 17, r: 9 },
+  { c: 17, r: 6 },
+  { c: 19, r: 6 }
 ];
 
 const waves = [
@@ -484,12 +491,18 @@ function isPathCell(col, row) {
   });
 }
 
+function getPointer(evt) {
+  if (evt.touches && evt.touches[0]) return evt.touches[0];
+  return evt;
+}
+
 function screenToGrid(event) {
+  const point = getPointer(event);
   const rect = canvas.getBoundingClientRect();
   const scaleX = canvas.width / rect.width;
   const scaleY = canvas.height / rect.height;
-  const x = (event.clientX - rect.left) * scaleX;
-  const y = (event.clientY - rect.top) * scaleY;
+  const x = (point.clientX - rect.left) * scaleX;
+  const y = (point.clientY - rect.top) * scaleY;
   return { col: Math.floor(x / CELL), row: Math.floor(y / CELL) };
 }
 
@@ -524,9 +537,7 @@ function handleCanvasClick(event) {
   state.message = `${config.name} felállítva!`;
 }
 
-canvas.addEventListener('click', handleCanvasClick);
-
-canvas.addEventListener('mousemove', event => {
+function updateHoverFromPoint(event) {
   const { col, row } = screenToGrid(event);
   const inBounds = col >= 0 && col < COLS && row >= 0 && row < ROWS;
   if (!inBounds) {
@@ -537,9 +548,32 @@ canvas.addEventListener('mousemove', event => {
   const occupied = state.towers.some(t => t.col === col && t.row === row);
   const valid = !isPathCell(col, row) && !occupied && state.gold >= config.cost;
   state.hover = { col, row, valid, config };
-});
+}
+
+canvas.addEventListener('click', handleCanvasClick);
+
+canvas.addEventListener('mousemove', updateHoverFromPoint);
+
+canvas.addEventListener('touchstart', event => {
+  const pointer = getPointer(event);
+  if (!pointer) return;
+  handleCanvasClick(pointer);
+  updateHoverFromPoint(pointer);
+  event.preventDefault();
+}, { passive: false });
+
+canvas.addEventListener('touchmove', event => {
+  const pointer = getPointer(event);
+  if (!pointer) return;
+  updateHoverFromPoint(pointer);
+  event.preventDefault();
+}, { passive: false });
 
 canvas.addEventListener('mouseleave', () => {
+  state.hover = null;
+});
+
+canvas.addEventListener('touchend', () => {
   state.hover = null;
 });
 
@@ -639,7 +673,7 @@ function update(dt) {
 function drawGrid() {
   ctx.save();
   ctx.lineWidth = 1;
-  ctx.strokeStyle = '#111827';
+  ctx.strokeStyle = '#0f172a';
   for (let c = 0; c <= COLS; c++) {
     ctx.beginPath();
     ctx.moveTo(c * CELL, 0);
@@ -655,11 +689,59 @@ function drawGrid() {
   ctx.restore();
 }
 
+function drawPlayfieldBase() {
+  ctx.save();
+  const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+  grad.addColorStop(0, '#0f172a');
+  grad.addColorStop(0.45, '#0c1324');
+  grad.addColorStop(1, '#0b1324');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  const pads = [
+    { c: 1, r: 6, w: 5, h: 2 },
+    { c: 7, r: 8, w: 6, h: 2 },
+    { c: 10, r: 2, w: 6, h: 2 },
+    { c: 3, r: 9, w: 3, h: 2 }
+  ];
+  pads.forEach(pad => {
+    const x = pad.c * CELL;
+    const y = pad.r * CELL;
+    const w = pad.w * CELL;
+    const h = pad.h * CELL;
+    ctx.fillStyle = 'rgba(16, 185, 129, 0.06)';
+    ctx.strokeStyle = 'rgba(124, 58, 237, 0.14)';
+    ctx.lineWidth = 2;
+    roundRect(ctx, x + 6, y + 6, w - 12, h - 12, 10);
+    ctx.fill();
+    ctx.stroke();
+  });
+
+  const deco = [
+    { x: canvas.width * 0.26, y: canvas.height * 0.22, r: 46, c: 'rgba(34, 211, 238, 0.12)' },
+    { x: canvas.width * 0.75, y: canvas.height * 0.72, r: 54, c: 'rgba(124, 58, 237, 0.1)' },
+    { x: canvas.width * 0.58, y: canvas.height * 0.38, r: 38, c: 'rgba(16, 185, 129, 0.1)' }
+  ];
+  deco.forEach(d => {
+    const radial = ctx.createRadialGradient(d.x, d.y, d.r * 0.1, d.x, d.y, d.r);
+    radial.addColorStop(0, d.c);
+    radial.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = radial;
+    ctx.beginPath();
+    ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  ctx.restore();
+}
+
 function drawPath() {
   ctx.save();
-  ctx.fillStyle = 'rgba(16, 185, 129, 0.18)';
-  ctx.strokeStyle = 'rgba(16, 185, 129, 0.6)';
-  ctx.lineWidth = 3;
+  ctx.fillStyle = 'rgba(16, 185, 129, 0.2)';
+  ctx.strokeStyle = 'rgba(16, 185, 129, 0.8)';
+  ctx.lineWidth = 3.2;
+  ctx.shadowColor = 'rgba(16, 185, 129, 0.35)';
+  ctx.shadowBlur = 14;
   pathCells.forEach((cell, i) => {
     const next = pathCells[i + 1];
     if (!next) return;
@@ -673,19 +755,35 @@ function drawPath() {
     ctx.fill();
     ctx.stroke();
   });
+  ctx.shadowBlur = 0;
+
+  ctx.lineWidth = 1.5;
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+  pathCells.forEach(cell => {
+    const px = cell.c * CELL + CELL / 2;
+    const py = cell.r * CELL + CELL / 2;
+    ctx.beginPath();
+    ctx.arc(px, py, 8, 0, Math.PI * 2);
+    ctx.stroke();
+  });
 
   const startPos = toPixels(pathCells[0]);
   const endPos = toPixels(pathCells[pathCells.length - 1]);
 
   ctx.fillStyle = '#22c55e';
+  ctx.strokeStyle = 'rgba(34, 197, 94, 0.7)';
+  ctx.lineWidth = 2;
   ctx.beginPath();
   ctx.arc(startPos.x, startPos.y, 12, 0, Math.PI * 2);
   ctx.fill();
+  ctx.stroke();
 
   ctx.fillStyle = '#ef4444';
+  ctx.strokeStyle = 'rgba(239, 68, 68, 0.7)';
   ctx.beginPath();
   ctx.arc(endPos.x, endPos.y, 12, 0, Math.PI * 2);
   ctx.fill();
+  ctx.stroke();
   ctx.restore();
 }
 
@@ -744,16 +842,20 @@ function drawRangeHighlights() {
 
 function drawMessage() {
   ctx.save();
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
-  ctx.fillRect(16, canvas.height - 62, canvas.width - 32, 46);
+  const pad = 16;
+  const height = 54;
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.42)';
+  roundRect(ctx, pad, canvas.height - height - 12, canvas.width - pad * 2, height, 12);
+  ctx.fill();
   ctx.fillStyle = '#e5e7eb';
   ctx.font = '600 16px "Inter", "Segoe UI", sans-serif';
-  ctx.fillText(state.message, 28, canvas.height - 32);
+  ctx.fillText(state.message, pad + 12, canvas.height - 24);
   ctx.restore();
 }
 
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+  drawPlayfieldBase();
   drawGrid();
   drawPath();
   drawGhostPlacement();
@@ -791,4 +893,4 @@ resetGame();
 updateTowerHud();
 tick(lastTime);
 
-console.log('TD Academy v0.2.0 betöltve');
+console.log(`TD Academy v${VERSION} betöltve`);
