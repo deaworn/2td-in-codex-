@@ -602,6 +602,18 @@ resetBtn.addEventListener('click', resetGame);
 if (startBtnBoard) startBtnBoard.addEventListener('click', attemptStartWave);
 if (resetBtnBoard) resetBtnBoard.addEventListener('click', resetGame);
 
+let autoStartTimer = null;
+function scheduleAutoStart() {
+  if (autoStartTimer) {
+    clearTimeout(autoStartTimer);
+  }
+  autoStartTimer = setTimeout(() => {
+    if (!state.running && state.waveIndex < 0) {
+      attemptStartWave();
+    }
+  }, 800);
+}
+
 function toggleHelp(show) {
   if (!helpModal) return;
   helpModal.classList.toggle('show', show);
@@ -931,6 +943,7 @@ function tick(now) {
 
 resetGame();
 updateTowerHud();
+scheduleAutoStart();
 tick(lastTime);
 
 console.log(`TD Academy v${VERSION} betöltve`);
