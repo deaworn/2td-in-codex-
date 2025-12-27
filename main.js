@@ -6,6 +6,7 @@ const livesEl = document.getElementById('lives');
 const waveEl = document.getElementById('wave');
 const enemiesEl = document.getElementById('enemies');
 const towerNameEl = document.getElementById('towerName');
+const upgradePointsEl = document.getElementById('upgradePoints');
 const startBtn = document.getElementById('startWave');
 const resetBtn = document.getElementById('resetGame');
 const speedSelect = document.getElementById('speedSelect');
@@ -90,7 +91,8 @@ const state = {
   message: 'Készen állsz! Válassz tornyot és kattints a pályára.',
   speed: 1,
   selectedTower: 'flame',
-  hover: null
+  hover: null,
+  upgradePoints: 0
 };
 
 towerNameEl.textContent = `${towerTypes[state.selectedTower].name} (${towerTypes[state.selectedTower].cost})`;
@@ -248,7 +250,12 @@ class Enemy {
     if (this.hp <= 0 && !this.isDead) {
       this.isDead = true;
       state.gold += this.reward;
-      state.message = this.isBoss ? 'Főellenség elfüstölt!' : 'Ellenség legyőzve – bónusz arany!';
+      if (this.isBoss) {
+        state.upgradePoints += 2;
+        state.message = 'Főellenség elfüstölt! +2 fejlesztési pont';
+      } else {
+        state.message = 'Ellenség legyőzve – bónusz arany!';
+      }
     }
   }
 
@@ -269,6 +276,11 @@ class Tower {
     this.range = this.config.range;
     this.cooldown = 0;
     this.fireDelay = 1 / this.config.fireRate;
+    this.level = 1;
+    this.damageBonus = 0;
+    this.rangeBonus = 0;
+    this.fireRateBonus = 0;
+    this.pendingUpgradeGlow = 0;
   }
 
   update(dt) {
@@ -301,7 +313,7 @@ class Tower {
   }
 
   fire(target) {
-    state.bullets.push(new Bullet(this.x, this.y, target, this.type, this.config));
+    state.bullets.push(new Bullet(this.x, this.y, target, this.type, this.config, this.damageBonus));
   }
 
   draw(ctx) {
@@ -309,6 +321,14 @@ class Tower {
     ctx.translate(this.x, this.y);
     ctx.lineWidth = 3;
     ctx.strokeStyle = '#0f172a';
+
+    if (this.pendingUpgradeGlow > 0) {
+      ctx.shadowColor = this.config.color;
+      ctx.shadowBlur = 20 * this.pendingUpgradeGlow;
+      this.pendingUpgradeGlow = Math.max(0, this.pendingUpgradeGlow - 0.02);
+    } else {
+      ctx.shadowBlur = 0;
+    }
 
     if (this.type === 'flame') {
       const gradient = ctx.createLinearGradient(-14, -14, 14, 14);
@@ -349,19 +369,44 @@ class Tower {
       ctx.stroke();
     }
 
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#0f172a';
+    ctx.beginPath();
+    ctx.arc(14, -14, 8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#e5e7eb';
+    ctx.font = 'bold 10px \"Inter\", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(this.level, 14, -14.5);
+
     ctx.restore();
+  }
+
+  upgrade() {
+    if (state.upgradePoints <= 0) return false;
+    state.upgradePoints -= 1;
+    this.level += 1;
+    this.damageBonus += this.config.damage * 0.15;
+    this.rangeBonus += this.config.range * 0.06;
+    this.fireRateBonus += 0.07;
+    this.range += this.config.range * 0.06;
+    this.fireDelay = 1 / (this.config.fireRate + this.fireRateBonus);
+    this.pendingUpgradeGlow = 1;
+    state.message = `${this.config.name} fejlesztve (Lv.${this.level})`;
+    return true;
   }
 }
 
 class Bullet {
-  constructor(x, y, target, typeKey, config) {
+  constructor(x, y, target, typeKey, config, damageBonus = 0) {
     this.x = x;
     this.y = y;
     this.target = target;
     this.type = typeKey;
     this.config = config;
     this.speed = config.bulletSpeed;
-    this.damage = config.damage;
+    this.damage = config.damage + damageBonus;
   }
 
   update(dt) {
@@ -455,9 +500,13 @@ function handleCanvasClick(event) {
     state.message = 'Az ösvényre nem építhetsz!';
     return;
   }
-  const occupied = state.towers.some(t => t.col === col && t.row === row);
-  if (occupied) {
-    state.message = 'Itt már áll egy torony.';
+  const towerHere = state.towers.find(t => t.col === col && t.row === row);
+  if (towerHere) {
+    if (state.upgradePoints > 0) {
+      const upgraded = towerHere.upgrade();
+      if (upgraded) return;
+    }
+    state.message = 'Itt már áll egy torony. Fejlesztéshez szerezz pontot hullámokból!';
     return;
   }
 
@@ -539,6 +588,7 @@ function resetGame() {
   state.running = false;
   state.spawnTimer = 0;
   state.spawned = 0;
+  state.upgradePoints = 0;
   state.message = 'Újrakezdve! Válassz tornyot és indítsd a hullámot.';
 }
 
@@ -559,6 +609,7 @@ function spawnEnemy(dt) {
       if (state.lives > 0) state.message = 'Győzelem! Minden hullámot megállítottál.';
     } else {
       state.message = 'Hullám vége! Jöhet a következő.';
+      state.upgradePoints += 1;
     }
   }
 }
@@ -720,6 +771,7 @@ function updateHud() {
   livesEl.textContent = state.lives;
   waveEl.textContent = `${Math.max(state.waveIndex + 1, 0)} / ${waves.length}`;
   enemiesEl.textContent = state.enemies.filter(e => !e.isDead).length;
+  upgradePointsEl.textContent = state.upgradePoints;
 }
 
 let lastTime = performance.now();
