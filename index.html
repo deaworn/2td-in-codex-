@@ -3,17 +3,54 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TD Academy v0.0.2</title>
+  <title>NEXUS Defense v0.1.0</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <main class="layout" aria-label="TD Academy prototípus">
     <header class="hero">
-      <p class="eyebrow">Canvas Tower Defense</p>
-      <h1>TD Academy</h1>
-      <p class="tagline">Egyetlen ellenfél, színes útvonal, látványos utazás.</p>
-      <button id="startButton" type="button">Start</button>
+      <p class="eyebrow">NEXUS Defense</p>
+      <h1>Starshell védelmi prototípus</h1>
+      <p class="tagline">Helyezz fel tornyokat, indítsd a hullámokat, védd a magot.</p>
+      <div class="cta-row">
+        <button id="startButton" type="button">Hullám indítása</button>
+        <span class="hint">1 / 2 / 3 billentyűvel váltasz tornyot, kattintással helyezel.</span>
+      </div>
     </header>
+
+    <section class="hud">
+      <div class="stat">
+        <span class="label">Energia</span>
+        <span id="energyDisplay" class="value">--</span>
+      </div>
+      <div class="stat">
+        <span class="label">Élet</span>
+        <span id="lifeDisplay" class="value">--</span>
+      </div>
+      <div class="stat">
+        <span class="label">Hullám</span>
+        <span id="waveDisplay" class="value">--</span>
+      </div>
+      <div class="stat" id="statusDisplay">
+        <span class="label">Állapot</span>
+        <span class="value">Várakozás</span>
+      </div>
+    </section>
+
+    <section class="selector" aria-label="Torny választó">
+      <button class="tower" data-tower="laser" type="button">
+        <span class="title">Lézer torony</span>
+        <span class="meta">100 ⛁ • Gyors sebzés</span>
+      </button>
+      <button class="tower" data-tower="plasma" type="button">
+        <span class="title">Plazmaágyú</span>
+        <span class="meta">150 ⛁ • Páncél ellen</span>
+      </button>
+      <button class="tower" data-tower="chrono" type="button">
+        <span class="title">Idő-gyorsító</span>
+        <span class="meta">180 ⛁ • Lassít és buffol</span>
+      </button>
+    </section>
 
     <section class="stage">
       <canvas id="gameCanvas" width="900" height="480" aria-label="Játéktér"></canvas>
@@ -21,10 +58,11 @@
         <span class="chip path">Út</span>
         <span class="chip enemy">Ellenfél</span>
         <span class="chip trail">Fénycsóva</span>
+        <span class="chip tower">Torony</span>
       </div>
     </section>
   </main>
-  <div class="version">v0.0.2</div>
+  <div class="version">v0.1.0</div>
   <script src="main.js"></script>
 </body>
 </html>
