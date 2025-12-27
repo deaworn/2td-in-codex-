@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TD Academy v0.4.0</title>
+  <title>TD Academy v0.5.0</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -81,15 +81,36 @@
           <span class="tower-meta">70 arany • láncsebzés</span>
         </button>
       </div>
-      <p class="tower-hint">Tipp: Válassz tornyot, majd kattints / érints a pálya útvonalon kívüli mezőire a lerakáshoz. A színes aurák a hatótávot jelzik.</p>
+      <div class="chip-row">
+        <span class="chip"><span class="icon">👆</span> Tap & Drag a pályán</span>
+        <span class="chip"><span class="icon">🎯</span> Színes aura = hatótáv</span>
+        <span class="chip"><span class="icon">💎</span> Út kizárva: zöld sáv</span>
+      </div>
     </section>
 
     <section class="board-wrap" aria-label="Játéktér">
       <div class="canvas-hint">Kattints a mezőre tornyok lerakásához. A zöld út a támadók haladási iránya.</div>
       <div class="board-shell">
         <canvas id="board" width="900" height="540" role="img" aria-label="Tower defense pálya"></canvas>
+        <div class="board-overlay">
+          <div class="bubble">
+            <span class="icon">🤏</span>
+            <div>
+              <strong>Érintésre optimalizálva</strong>
+              <p class="microcopy">Koppints a szabad mezőkre a torony lerakásához.</p>
+            </div>
+          </div>
+          <div class="board-actions">
+            <button class="btn primary compact" id="startWaveBoard">
+              <span class="icon">▶</span><span>Indítás</span>
+            </button>
+            <button class="btn ghost compact" id="resetBoard">
+              <span class="icon">↺</span><span>Reset</span>
+            </button>
+          </div>
+        </div>
         <div class="board-meta">
-          <span class="badge subtle" aria-label="Verzió" id="versionBadge">v0.4.0</span>
+          <span class="badge subtle" aria-label="Verzió" id="versionBadge">v0.5.0</span>
           <span class="badge info" aria-label="Nézet módja">
             <span class="icon">📱</span>
             <span>Érintés + kattintás</span>

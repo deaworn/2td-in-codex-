@@ -1,10 +1,12 @@
-const VERSION = '0.4.0';
+const VERSION = '0.5.0';
 const canvas = document.getElementById('board');
 const ctx = canvas.getContext('2d');
 const versionBadge = document.getElementById('versionBadge');
 const helpModal = document.getElementById('helpModal');
 const openHelp = document.getElementById('openHelp');
 const closeHelp = document.getElementById('closeHelp');
+const startBtnBoard = document.getElementById('startWaveBoard');
+const resetBtnBoard = document.getElementById('resetBoard');
 
 const goldEl = document.getElementById('gold');
 const livesEl = document.getElementById('lives');
@@ -580,7 +582,7 @@ canvas.addEventListener('touchend', () => {
   state.hover = null;
 });
 
-startBtn.addEventListener('click', () => {
+function attemptStartWave() {
   if (state.waveIndex >= waves.length - 1 && !state.running && state.enemies.length === 0) {
     state.message = 'Már minden hullámot túléltél!';
     return;
@@ -590,9 +592,13 @@ startBtn.addEventListener('click', () => {
     return;
   }
   startNextWave();
-});
+}
+
+startBtn.addEventListener('click', attemptStartWave);
+if (startBtnBoard) startBtnBoard.addEventListener('click', attemptStartWave);
 
 resetBtn.addEventListener('click', resetGame);
+if (resetBtnBoard) resetBtnBoard.addEventListener('click', resetGame);
 
 function toggleHelp(show) {
   if (!helpModal) return;
