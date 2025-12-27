@@ -1,7 +1,10 @@
-const VERSION = '0.3.0';
+const VERSION = '0.4.0';
 const canvas = document.getElementById('board');
 const ctx = canvas.getContext('2d');
 const versionBadge = document.getElementById('versionBadge');
+const helpModal = document.getElementById('helpModal');
+const openHelp = document.getElementById('openHelp');
+const closeHelp = document.getElementById('closeHelp');
 
 const goldEl = document.getElementById('gold');
 const livesEl = document.getElementById('lives');
@@ -590,6 +593,22 @@ startBtn.addEventListener('click', () => {
 });
 
 resetBtn.addEventListener('click', resetGame);
+
+function toggleHelp(show) {
+  if (!helpModal) return;
+  helpModal.classList.toggle('show', show);
+}
+
+if (openHelp && closeHelp) {
+  openHelp.addEventListener('click', () => toggleHelp(true));
+  closeHelp.addEventListener('click', () => toggleHelp(false));
+  helpModal?.addEventListener('click', e => {
+    if (e.target === helpModal) toggleHelp(false);
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') toggleHelp(false);
+  });
+}
 
 speedSelect.addEventListener('change', () => {
   state.speed = Number(speedSelect.value);

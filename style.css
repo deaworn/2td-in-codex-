@@ -35,7 +35,7 @@ body {
 }
 
 .layout {
-  width: min(1160px, 100%);
+  width: min(1080px, 100%);
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -94,6 +94,7 @@ body {
   cursor: pointer;
   transition: transform 0.12s ease, box-shadow 0.2s ease, background 0.2s ease;
   font-size: 0.95rem;
+  gap: 8px;
 }
 
 .btn.primary {
@@ -106,6 +107,17 @@ body {
   background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.14);
   color: #e5e7eb;
+}
+
+.btn.pill {
+  border-radius: 999px;
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.btn.icon-only {
+  width: 36px;
+  height: 36px;
+  padding: 0;
 }
 
 .btn:hover {
@@ -125,6 +137,11 @@ body {
   font-weight: 600;
 }
 
+.icon {
+  font-size: 1.05rem;
+  opacity: 0.9;
+}
+
 select {
   background: var(--panel);
   color: var(--text);
@@ -135,7 +152,7 @@ select {
 
 .hud {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: 12px;
 }
 
@@ -235,6 +252,7 @@ select {
   border: 1px solid rgba(255, 255, 255, 0.07);
   background: linear-gradient(180deg, rgba(15, 23, 42, 0.9), rgba(10, 12, 24, 0.92));
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  padding: 10px;
 }
 
 #board {
@@ -310,6 +328,63 @@ select {
   border-color: rgba(124, 58, 237, 0.3);
 }
 
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 20;
+}
+
+.modal.show {
+  display: flex;
+}
+
+.modal-content {
+  width: min(520px, 100%);
+  background: #0f172a;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+  padding: 16px;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.modal-body ul {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #e5e7eb;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
 @media (max-width: 720px) {
   body {
     padding: 12px 8px 64px;
@@ -355,10 +430,11 @@ select {
   .controls {
     flex-direction: column;
     align-items: stretch;
+    gap: 10px;
   }
 
   .hud {
-    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   }
 
   .tower-grid {
