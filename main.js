@@ -1,4 +1,4 @@
-const VERSION = '0.6.0';
+const VERSION = '0.6.1';
 const canvas = document.getElementById('board');
 const ctx = canvas.getContext('2d');
 const versionBadge = document.getElementById('versionBadge');
@@ -641,6 +641,11 @@ function startNextWave() {
   state.running = true;
   const waveInfo = waves[state.waveIndex];
   state.message = waveInfo.boss ? 'Főellenség érkezik! Készülj!' : `Hullám #${state.waveIndex + 1} elindult!`;
+  // Indítsunk azonnal egy egységet, hogy a start gomb látható hatást okozzon.
+  if (state.spawned < waveInfo.count) {
+    state.enemies.push(new Enemy(waveInfo));
+    state.spawned = 1;
+  }
 }
 
 function resetGame() {

@@ -1,4 +1,4 @@
-# TD Classic (v0.6.0)
+# TD Classic (v0.6.1)
 
 Egy könnyed, böngészőben futó tower defense minijáték. Építs különböző tornyokat, indítsd a hullámokat, és védd meg a kristályt a kilenc eltérő ellenfél-hullámtól, köztük egy főellenséggel.
 
@@ -8,7 +8,7 @@ Nyisd meg az `index.html` fájlt egy modern böngészőben (asztali környezet a
 ### Mobil nézet
 - Fix 1920x1080-as játéktér egyetlen keretben (a viewporthoz skálázva), a teljes UI ezen belül helyezkedik el.
 - Ikonos stat-sáv, jobb oldali toronypanel és alsó HUD gombokkal; érintésre és egérre is optimalizálva.
-- A verziószám a játéktér jobb alsó sarkában jelenik meg; minden frissítésnél nő (pl. most: v0.6.0).
+- A verziószám a játéktér jobb alsó sarkában jelenik meg; minden frissítésnél nő (pl. most: v0.6.1).
 
 ## Tornyok
 - **Lángtorony (45)**: gyors lövés, egyenes sebzés.
