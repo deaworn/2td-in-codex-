@@ -1,4 +1,4 @@
-const VERSION = '0.6.1';
+const VERSION = '0.6.2';
 const canvas = document.getElementById('board');
 const ctx = canvas.getContext('2d');
 const versionBadge = document.getElementById('versionBadge');
@@ -706,7 +706,7 @@ function update(dt) {
 function drawGrid() {
   ctx.save();
   ctx.lineWidth = 1;
-  ctx.strokeStyle = '#0f172a';
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
   for (let c = 0; c <= COLS; c++) {
     ctx.beginPath();
     ctx.moveTo(c * CELL, 0);
@@ -718,6 +718,13 @@ function drawGrid() {
     ctx.moveTo(0, r * CELL);
     ctx.lineTo(canvas.width, r * CELL);
     ctx.stroke();
+  }
+  ctx.globalAlpha = 0.18;
+  for (let c = 0; c < COLS; c++) {
+    for (let r = 0; r < ROWS; r++) {
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.03)';
+      ctx.fillRect(c * CELL + 1, r * CELL + 1, CELL - 2, CELL - 2);
+    }
   }
   ctx.restore();
 }
@@ -732,18 +739,18 @@ function drawPlayfieldBase() {
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   const pads = [
-    { c: 1, r: 6, w: 5, h: 2 },
-    { c: 7, r: 8, w: 6, h: 2 },
-    { c: 10, r: 2, w: 6, h: 2 },
-    { c: 3, r: 9, w: 3, h: 2 }
+    { c: 2, r: 6, w: 5, h: 3 },
+    { c: 9, r: 8, w: 6, h: 3 },
+    { c: 12, r: 2, w: 6, h: 3 },
+    { c: 4, r: 11, w: 3, h: 3 }
   ];
   pads.forEach(pad => {
     const x = pad.c * CELL;
     const y = pad.r * CELL;
     const w = pad.w * CELL;
     const h = pad.h * CELL;
-    ctx.fillStyle = 'rgba(16, 185, 129, 0.06)';
-    ctx.strokeStyle = 'rgba(124, 58, 237, 0.14)';
+    ctx.fillStyle = 'rgba(124, 58, 237, 0.07)';
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
     ctx.lineWidth = 2;
     roundRect(ctx, x + 6, y + 6, w - 12, h - 12, 10);
     ctx.fill();
@@ -770,11 +777,11 @@ function drawPlayfieldBase() {
 
 function drawPath() {
   ctx.save();
-  ctx.fillStyle = 'rgba(16, 185, 129, 0.2)';
-  ctx.strokeStyle = 'rgba(16, 185, 129, 0.8)';
-  ctx.lineWidth = 3.2;
-  ctx.shadowColor = 'rgba(16, 185, 129, 0.35)';
-  ctx.shadowBlur = 14;
+  ctx.fillStyle = 'rgba(34, 197, 94, 0.26)';
+  ctx.strokeStyle = 'rgba(34, 197, 94, 0.95)';
+  ctx.lineWidth = 3.6;
+  ctx.shadowColor = 'rgba(34, 197, 94, 0.4)';
+  ctx.shadowBlur = 16;
   pathCells.forEach((cell, i) => {
     const next = pathCells[i + 1];
     if (!next) return;
@@ -791,7 +798,7 @@ function drawPath() {
   ctx.shadowBlur = 0;
 
   ctx.lineWidth = 1.5;
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
   pathCells.forEach(cell => {
     const px = cell.c * CELL + CELL / 2;
     const py = cell.r * CELL + CELL / 2;
