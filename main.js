@@ -163,6 +163,8 @@ function updateEnemies(delta) {
 function drawScene() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   drawSky();
+  // extra grid overlay
+  drawGrid();
   drawPath();
   drawTrail();
   drawTowers();
@@ -172,17 +174,42 @@ function drawScene() {
 }
 
 function drawSky() {
-  const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-  gradient.addColorStop(0, '#e0f2fe');
-  gradient.addColorStop(0.5, '#f8fafc');
-  gradient.addColorStop(1, '#fff7ed');
+  const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+  gradient.addColorStop(0, '#0b1220');
+  gradient.addColorStop(0.5, '#0d1a2f');
+  gradient.addColorStop(1, '#081020');
   ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // halvány csillagok
+  ctx.fillStyle = 'rgba(255,255,255,0.12)';
+  stars.forEach((star) => {
+    const size = star.r;
+    ctx.beginPath();
+    ctx.arc(star.x, star.y, size, 0, Math.PI * 2);
+    ctx.fill();
+  });
+}
+
+function drawGrid() {
+  ctx.strokeStyle = 'rgba(34, 211, 238, 0.08)';
+  ctx.lineWidth = 1;
+  const spacing = 36;
+  ctx.beginPath();
+  for (let x = spacing; x < canvas.width; x += spacing) {
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, canvas.height);
+  }
+  for (let y = spacing; y < canvas.height; y += spacing) {
+    ctx.moveTo(0, y);
+    ctx.lineTo(canvas.width, y);
+  }
+  ctx.stroke();
 }
 
 function drawPath() {
   ctx.lineWidth = 26;
-  ctx.strokeStyle = '#c8f169';
+  ctx.strokeStyle = '#22f0b6';
   ctx.lineJoin = 'round';
   ctx.lineCap = 'round';
   ctx.beginPath();
@@ -196,7 +223,7 @@ function drawPath() {
   ctx.stroke();
 
   ctx.lineWidth = 4;
-  ctx.strokeStyle = '#5c7c1f';
+  ctx.strokeStyle = '#0ea5e9';
   ctx.beginPath();
   pathPoints.forEach((p, i) => {
     if (i === 0) ctx.moveTo(p.x, p.y);
