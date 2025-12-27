@@ -1,4 +1,4 @@
-const VERSION = '0.6.2';
+const VERSION = '0.6.3';
 const canvas = document.getElementById('board');
 const ctx = canvas.getContext('2d');
 const versionBadge = document.getElementById('versionBadge');
@@ -611,7 +611,7 @@ function scheduleAutoStart() {
     if (!state.running && state.waveIndex < 0) {
       attemptStartWave();
     }
-  }, 800);
+  }, 700);
 }
 
 function toggleHelp(show) {
@@ -651,6 +651,10 @@ function startNextWave() {
   state.spawned = 0;
   state.spawnTimer = 0;
   state.running = true;
+  if (autoStartTimer) {
+    clearTimeout(autoStartTimer);
+    autoStartTimer = null;
+  }
   const waveInfo = waves[state.waveIndex];
   state.message = waveInfo.boss ? 'Főellenség érkezik! Készülj!' : `Hullám #${state.waveIndex + 1} elindult!`;
   // Indítsunk azonnal egy egységet, hogy a start gomb látható hatást okozzon.
@@ -672,6 +676,7 @@ function resetGame() {
   state.spawned = 0;
   state.upgradePoints = 0;
   state.message = 'Újrakezdve! Válassz tornyot és indítsd a hullámot.';
+  scheduleAutoStart();
 }
 
 function spawnEnemy(dt) {
