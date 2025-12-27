@@ -5,6 +5,8 @@ const versionBadge = document.getElementById('versionBadge');
 const helpModal = document.getElementById('helpModal');
 const openHelp = document.getElementById('openHelp');
 const closeHelp = document.getElementById('closeHelp');
+const startBtnBoard = document.getElementById('startWaveBoard');
+const resetBtnBoard = document.getElementById('resetBoard');
 
 const goldEl = document.getElementById('gold');
 const livesEl = document.getElementById('lives');
@@ -15,10 +17,12 @@ const upgradePointsEl = document.getElementById('upgradePoints');
 const startBtn = document.getElementById('startWave');
 const resetBtn = document.getElementById('resetGame');
 const speedSelect = document.getElementById('speedSelect');
+const speedText = document.getElementById('speedText');
 const towerButtons = Array.from(document.querySelectorAll('.tower-btn'));
 
 document.title = `TD Academy v${VERSION}`;
 if (versionBadge) versionBadge.textContent = `v${VERSION}`;
+if (speedText) speedText.textContent = `${speedSelect.value}x`;
 
 const CELL = 60;
 const COLS = canvas.width / CELL;
@@ -593,9 +597,9 @@ function attemptStartWave() {
 }
 
 startBtn.addEventListener('click', attemptStartWave);
-if (startBtnBoard) startBtnBoard.addEventListener('click', attemptStartWave);
-
 resetBtn.addEventListener('click', resetGame);
+
+if (startBtnBoard) startBtnBoard.addEventListener('click', attemptStartWave);
 if (resetBtnBoard) resetBtnBoard.addEventListener('click', resetGame);
 
 function toggleHelp(show) {
@@ -616,6 +620,7 @@ if (openHelp && closeHelp) {
 
 speedSelect.addEventListener('change', () => {
   state.speed = Number(speedSelect.value);
+  if (speedText) speedText.textContent = `${speedSelect.value}x`;
 });
 
 towerButtons.forEach(btn => {
