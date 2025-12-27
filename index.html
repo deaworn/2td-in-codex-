@@ -3,197 +3,106 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NEXUS Defense v0.1.0</title>
+  <title>TD Academy v0.2.0</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <main class="layout" aria-label="NEXUS Defense holografikus összefoglaló">
+  <main class="layout" aria-label="TD Academy kezdőlap">
     <header class="hero">
-      <p class="eyebrow">NEXUS Defense</p>
-      <h1>Starshell védelmi prototípus</h1>
-      <p class="tagline">Helyezz fel tornyokat, indítsd a hullámokat, védd a magot.</p>
-      <div class="cta-row">
-        <button id="startButton" type="button">Hullám indítása</button>
-        <span class="hint">1 / 2 / 3 billentyűvel váltasz tornyot, kattintással helyezel.</span>
+      <div class="title-wrap">
+        <p class="eyebrow">Tower Defense Műhely</p>
+        <h1>TD Academy</h1>
+        <p class="subtitle">Építs tornyokat, tartsd vissza a hullámokat, és védd meg a kristályt az inváziótól.</p>
+      </div>
+      <div class="controls">
+        <button id="startWave" class="btn primary">Start / Következő hullám</button>
+        <button id="resetGame" class="btn ghost">Újrakezdés</button>
+        <label class="speed">
+          <span>Játékmenet</span>
+          <select id="speedSelect" aria-label="Játék sebessége">
+            <option value="1">1x</option>
+            <option value="1.5">1.5x</option>
+            <option value="2">2x</option>
+          </select>
+        </label>
       </div>
     </header>
 
-    <section class="hud">
+    <section class="hud" aria-label="Játék állapota">
       <div class="stat">
-        <span class="label">Energia</span>
-        <span id="energyDisplay" class="value">--</span>
+        <p class="label">Arany</p>
+        <p class="value" id="gold">120</p>
       </div>
       <div class="stat">
-        <span class="label">Élet</span>
-        <span id="lifeDisplay" class="value">--</span>
+        <p class="label">Életerő</p>
+        <p class="value" id="lives">20</p>
       </div>
       <div class="stat">
-        <span class="label">Hullám</span>
-        <span id="waveDisplay" class="value">--</span>
+        <p class="label">Hullám</p>
+        <p class="value" id="wave">0 / 9</p>
       </div>
-      <div class="stat" id="statusDisplay">
-        <span class="label">Állapot</span>
-        <span class="value">Várakozás</span>
+      <div class="stat">
+        <p class="label">Ellenségek</p>
+        <p class="value" id="enemies">0</p>
+      </div>
+      <div class="stat">
+        <p class="label">Kiválasztott torony</p>
+        <p class="value" id="towerName">Lángtorony (45)</p>
       </div>
     </section>
 
-    <section class="selector" aria-label="Torny választó">
-      <button class="tower" data-tower="laser" type="button">
-        <span class="title">Lézer torony</span>
-        <span class="meta">100 ⛁ • Gyors sebzés</span>
-      </button>
-      <button class="tower" data-tower="plasma" type="button">
-        <span class="title">Plazmaágyú</span>
-        <span class="meta">150 ⛁ • Páncél ellen</span>
-      </button>
-      <button class="tower" data-tower="chrono" type="button">
-        <span class="title">Idő-gyorsító</span>
-        <span class="meta">180 ⛁ • Lassít és buffol</span>
-      </button>
-    </section>
-
-    <section class="stage">
-      <canvas id="gameCanvas" width="900" height="480" aria-label="Játéktér"></canvas>
-      <div class="legend">
-        <span class="chip path">Út</span>
-        <span class="chip enemy">Ellenfél</span>
-        <span class="chip trail">Fénycsóva</span>
-        <span class="chip tower">Torony</span>
+    <section class="towers" aria-label="Toronyválasztó">
+      <div class="tower-grid">
+        <button class="tower-btn active" data-tower="flame">
+          <span class="tower-title">Lángtorony</span>
+          <span class="tower-meta">45 arany • egyenes sebzés</span>
+        </button>
+        <button class="tower-btn" data-tower="frost">
+          <span class="tower-title">Fagyasztó torony</span>
+          <span class="tower-meta">55 arany • lassítás</span>
+        </button>
+        <button class="tower-btn" data-tower="tesla">
+          <span class="tower-title">Szikra torony</span>
+          <span class="tower-meta">70 arany • láncsebzés</span>
+        </button>
       </div>
-      <canvas id="gameCanvas" width="900" height="480" aria-label="Játéktér"></canvas>
+      <p class="tower-hint">Tipp: Válassz tornyot, majd kattints a pálya útvonalon kívüli mezőire a lerakáshoz. A színes aurák a hatótávot jelzik.</p>
     </section>
 
-    <section class="grid two" aria-label="Fő játékelemek">
+    <section class="board-wrap" aria-label="Játéktér">
+      <div class="canvas-hint">Kattints a mezőre tornyok lerakásához. A zöld út a támadók haladási iránya.</div>
+      <canvas id="board" width="900" height="540" role="img" aria-label="Tower defense pálya"></canvas>
+    </section>
+
+    <section class="info-grid">
       <article class="card">
-        <p class="label">Alapvetés</p>
-        <h3>Világháttér & cél</h3>
-        <p>
-          A NEXUS Starshell állomást biomechanikus invázió éri. 100 életerővel indulsz, és
-          minden hullám után új tornyokat építhetsz vagy fejleszthetsz. 50 szinten át kell
-          visszaverned a rajokat; a záró Nexus Core győzelmével fény derül az invázió eredetére.
-        </p>
-        <ul class="bullet-grid">
-          <li><strong>Hullám ritmus:</strong> 5–8 hullám/szint, 30s szünetek.</li>
-          <li><strong>Bonuszok:</strong> Combo Kills, Speed Bonus, Perfect Defense.</li>
-          <li><strong>Meta:</strong> 3 csillagos értékelés, Tech pontok, Nightmare mód a végén.</li>
+        <h2>Taktika</h2>
+        <ul>
+          <li>Kattints a szabad mezőkre: Lángtorony (45 arany) tüzel a legközelebbi egységre.</li>
+          <li>A Fagyasztó torony lassítja a célpontot, a Szikra torony pedig a következő közeli egységre is továbbugrik.</li>
+          <li>A tornyok kör hatótávját lerakáskor színes aura jelöli.</li>
+          <li>Az ellenségek kiiktatása aranyat ad, amit új tornyokra költhetsz.</li>
         </ul>
       </article>
       <article class="card">
-        <p class="label">Erőforrás</p>
-        <h3>Energia gazdálkodás</h3>
-        <p>
-          Energia a legyőzött drónokból: Scout (20), Wasp (35), Beetle (50), Phantom (60),
-          Hive-egység (25), Nexus Core (500). Fejlesztések: szint × 50 Energia.
-        </p>
-        <div class="pill-row">
-          <span class="pill">+20% sebzés/szint</span>
-          <span class="pill">+15% tűzgyorsaság/szint</span>
-          <span class="pill">+10% hatótáv/szint</span>
-          <span class="pill">Speciális képesség erősítése</span>
-        </div>
-      </article>
-    </section>
-
-    <section class="grid three" aria-label="Tornyok">
-      <article class="card">
-        <p class="label">100 Energia</p>
-        <h3>Laser Turret</h3>
-        <p>Világoskék lézernyaláb, kompakt, forgó fejjel. Precíz, gyors lövések.</p>
-      </article>
-      <article class="card">
-        <p class="label">150 Energia</p>
-        <h3>Plasma Cannon</h3>
-        <p>Narancs-fehér plazmagömbökkel dolgozik, nehéz, lépcsős forma.</p>
-      </article>
-      <article class="card">
-        <p class="label">120 Energia</p>
-        <h3>Electron Emitter</h3>
-        <p>Zöld-türkiz elektromos sugár, bénítja a célpontokat.</p>
-      </article>
-      <article class="card">
-        <p class="label">180 Energia</p>
-        <h3>Nanite Swarm Dispenser</h3>
-        <p>Nanitrészecske felhőt enged ki, folyamatosan marja az ellenséget.</p>
-      </article>
-      <article class="card">
-        <p class="label">200 Energia</p>
-        <h3>Chrono Accelerator</h3>
-        <p>Időmanipuláció: torony-buff és ellenség lassítás irizáló ködben.</p>
-      </article>
-      <article class="card">
-        <p class="label">250 Energia</p>
-        <h3>Shield Generator</h3>
-        <p>Dómszerű pajzs, félgömb energiával védi a közeli szerkezeteket.</p>
-      </article>
-    </section>
-
-    <section class="grid three" aria-label="Ellenségek">
-      <article class="card">
-        <p class="label">Gyors • Alacsony HP</p>
-        <h3>Scout Drone</h3>
-        <p>Kardszárnyú, fémes szürke drón. Gyakran kicsúszik a lövések közül.</p>
-      </article>
-      <article class="card">
-        <p class="label">Közepes • Toronyellenes</p>
-        <h3>Shredder Wasp</h3>
-        <p>Fekete-piros exoskeleton, közelről csökkenti a tornyok hatékonyságát.</p>
-      </article>
-      <article class="card">
-        <p class="label">Lassú • Magas HP</p>
-        <h3>Armored Beetle</h3>
-        <p>Zöld, kristályos páncél, a sebzés felét elnyeli; speciális tornyok kellenek.</p>
-      </article>
-      <article class="card">
-        <p class="label">Kitérés • Energia alapú ellenfele</p>
-        <h3>Phantom</h3>
-        <p>Félig átlátszó energiaforma; lézerek átlövik, plazma/energia fegyver hatásos.</p>
-      </article>
-      <article class="card">
-        <p class="label">Széthasadó raj</p>
-        <h3>Hive Cluster</h3>
-        <p>Sárga fényraj, szétszóródik bizonyos találatoknál; területi sebzés ideális.</p>
-      </article>
-      <article class="card">
-        <p class="label">Főellenség</p>
-        <h3>Nexus Core</h3>
-        <p>Fénylő lila-fekete gömb, időnként sebezhetetlen buborékkal. Legyőzése lezárja a szintet.</p>
-      </article>
-    </section>
-
-    <section class="grid two" aria-label="Tech fa és kihívások">
-      <article class="card">
-        <p class="label">Tech Tree</p>
-        <h3>Három fő ág</h3>
-        <ul class="bullet-grid">
-          <li><strong>Offensive:</strong> Precision Targeting, Overdrive Systems, Cascade Damage.</li>
-          <li><strong>Defensive:</strong> Adaptive Shields, Regenerative Barriers, Damage Mitigation.</li>
-          <li><strong>Economic:</strong> Resource Optimization, Harvesting Efficiency, Momentum Bonus.</li>
+        <h2>Hullámok</h2>
+        <ul>
+          <li>8 változatos hullám, gyorsuló és páncélozott egységekkel.</li>
+          <li>Ha egy egység eléri a kristályt, 1 életet veszítesz.</li>
+          <li>Vesztettél, ha az életek 0-ra csökkennek. Győztél, ha túléled az összes hullámot!</li>
         </ul>
       </article>
       <article class="card">
-        <p class="label">Kihívás módok</p>
-        <h3>Változó nehézség</h3>
-        <ul class="bullet-grid">
-          <li>Endless Mode: végtelenül erősödő hullámok.</li>
-          <li>Time Attack: 5 perces szint limit.</li>
-          <li>Resource Scarcity: 40%-kal kevesebb Energia.</li>
-          <li>Permadeath: egy vereség után újrakezdés.</li>
+        <h2>Tippek</h2>
+        <ul>
+          <li>Nyisd meg a 2x sebességet, ha már stabil a védelmed.</li>
+          <li>Próbáld a kanyaroknál sűríteni a tüzet, így hosszabb ideig ér a sebzés.</li>
+          <li>Ha elrontottad a kezdést, az <strong>Újrakezdés</strong> gombbal azonnal újrapróbálhatod.</li>
         </ul>
       </article>
-    </section>
-
-    <section class="card" aria-label="Audio">
-      <p class="label">Hangkép</p>
-      <h3>Zene és hangeffektek</h3>
-      <p>
-        Futurisztikus elektronika: menüben lassú, légies szintik; harc közben tempófüggő dinamika;
-        kritikus fázisban sötétebb hangszín; győzelemkor felemelkedő motívum. Minden torony és drón
-        külön jellegű FX-et kap, a UX eventek (építés, fejlesztés, energia gyűjtés, hullám vége) is
-        jelzéssel járnak.
-      </p>
     </section>
   </main>
-  <div class="version">v0.1.0</div>
+  <div class="version">v0.2.0</div>
   <script src="main.js"></script>
 </body>
 </html>
