@@ -23,6 +23,12 @@ const enemy = {
   trail: [], // fénycsóvák pozíciói
 };
 
+const stars = Array.from({ length: 70 }, () => ({
+  x: Math.random() * canvas.width,
+  y: Math.random() * canvas.height,
+  r: Math.random() * 1.6 + 0.4,
+}));
+
 let playing = false;
 let lastTime = 0;
 let animationId = null;
@@ -32,6 +38,7 @@ startButton.addEventListener('click', () => {
   resetEnemy();
   playing = true;
   startButton.disabled = true;
+  startButton.textContent = 'Szimuláció folyamatban...';
   lastTime = performance.now();
   animationId = requestAnimationFrame(update);
 });
@@ -93,6 +100,7 @@ function moveEnemy(deltaSeconds) {
     enemy.y = lastPoint.y;
     playing = false;
     startButton.disabled = false;
+    startButton.textContent = 'Hologram futtatása';
     cancelAnimationFrame(animationId);
   }
 }
@@ -100,23 +108,50 @@ function moveEnemy(deltaSeconds) {
 function drawScene() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   drawSky();
+  // extra grid overlay
+  drawGrid();
   drawPath();
   drawTrail();
   drawEnemy();
 }
 
 function drawSky() {
-  const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-  gradient.addColorStop(0, '#e0f2fe');
-  gradient.addColorStop(0.5, '#f8fafc');
-  gradient.addColorStop(1, '#fff7ed');
+  const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+  gradient.addColorStop(0, '#0b1220');
+  gradient.addColorStop(0.5, '#0d1a2f');
+  gradient.addColorStop(1, '#081020');
   ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // halvány csillagok
+  ctx.fillStyle = 'rgba(255,255,255,0.12)';
+  stars.forEach((star) => {
+    const size = star.r;
+    ctx.beginPath();
+    ctx.arc(star.x, star.y, size, 0, Math.PI * 2);
+    ctx.fill();
+  });
+}
+
+function drawGrid() {
+  ctx.strokeStyle = 'rgba(34, 211, 238, 0.08)';
+  ctx.lineWidth = 1;
+  const spacing = 36;
+  ctx.beginPath();
+  for (let x = spacing; x < canvas.width; x += spacing) {
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, canvas.height);
+  }
+  for (let y = spacing; y < canvas.height; y += spacing) {
+    ctx.moveTo(0, y);
+    ctx.lineTo(canvas.width, y);
+  }
+  ctx.stroke();
 }
 
 function drawPath() {
   ctx.lineWidth = 26;
-  ctx.strokeStyle = '#c8f169';
+  ctx.strokeStyle = '#22f0b6';
   ctx.lineJoin = 'round';
   ctx.lineCap = 'round';
   ctx.beginPath();
@@ -130,7 +165,7 @@ function drawPath() {
   ctx.stroke();
 
   ctx.lineWidth = 4;
-  ctx.strokeStyle = '#5c7c1f';
+  ctx.strokeStyle = '#0ea5e9';
   ctx.beginPath();
   pathPoints.forEach((p, i) => {
     if (i === 0) ctx.moveTo(p.x, p.y);
@@ -142,7 +177,7 @@ function drawPath() {
 function drawTrail() {
   enemy.trail.forEach((dot, index) => {
     const alpha = (index + 1) / enemy.trail.length;
-    ctx.fillStyle = `rgba(6, 182, 212, ${alpha * 0.6})`;
+    ctx.fillStyle = `rgba(34, 211, 238, ${alpha * 0.7})`;
     ctx.beginPath();
     ctx.arc(dot.x, dot.y, 8 * alpha, 0, Math.PI * 2);
     ctx.fill();
@@ -150,10 +185,10 @@ function drawTrail() {
 }
 
 function drawEnemy() {
-  const pulse = 2 + Math.sin(performance.now() / 200) * 1.6;
-  ctx.fillStyle = '#ef4444';
-  ctx.strokeStyle = '#0f172a';
-  ctx.lineWidth = 2;
+  const pulse = 3 + Math.sin(performance.now() / 200) * 2;
+  ctx.fillStyle = '#f43f5e';
+  ctx.strokeStyle = '#22d3ee';
+  ctx.lineWidth = 3;
   ctx.beginPath();
   ctx.arc(enemy.x, enemy.y, 12 + pulse, 0, Math.PI * 2);
   ctx.fill();
@@ -163,6 +198,16 @@ function drawEnemy() {
   ctx.fillStyle = '#fef2f2';
   ctx.beginPath();
   ctx.arc(enemy.x - 4, enemy.y - 6, 4, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Hátsó ion-fény
+  const glowRadius = 22 + pulse;
+  const gradient = ctx.createRadialGradient(enemy.x, enemy.y, 0, enemy.x, enemy.y, glowRadius);
+  gradient.addColorStop(0, 'rgba(34, 211, 238, 0.35)');
+  gradient.addColorStop(1, 'rgba(34, 211, 238, 0)');
+  ctx.fillStyle = gradient;
+  ctx.beginPath();
+  ctx.arc(enemy.x, enemy.y, glowRadius, 0, Math.PI * 2);
   ctx.fill();
 }
 

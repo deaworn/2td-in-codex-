@@ -3,28 +3,177 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TD Academy v0.0.2</title>
+  <title>NEXUS Defense — Holografikus bemutató</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <main class="layout" aria-label="TD Academy prototípus">
+  <main class="layout" aria-label="NEXUS Defense holografikus összefoglaló">
     <header class="hero">
-      <p class="eyebrow">Canvas Tower Defense</p>
-      <h1>TD Academy</h1>
-      <p class="tagline">Egyetlen ellenfél, színes útvonal, látványos utazás.</p>
-      <button id="startButton" type="button">Start</button>
+      <p class="eyebrow">2247 • Starshell orbitális állomás</p>
+      <h1>NEXUS Defense</h1>
+      <p class="tagline">
+        Sci-fi tower defense 50 szinten át: neonrácsos pályák, biomechanikus rajok,
+        holografikus tornyok és egy mindent lezáró Nexus Core főellenség.
+      </p>
+      <div class="hero-actions">
+        <button id="startButton" type="button">Hologram futtatása</button>
+        <div class="meta">
+          <span class="pill">Tech Tree: Offense / Defense / Economy</span>
+          <span class="pill">Kihívás módok: Endless • Time Attack • Scarcity • Permadeath</span>
+        </div>
+      </div>
     </header>
 
-    <section class="stage">
-      <canvas id="gameCanvas" width="900" height="480" aria-label="Játéktér"></canvas>
-      <div class="legend">
-        <span class="chip path">Út</span>
-        <span class="chip enemy">Ellenfél</span>
-        <span class="chip trail">Fénycsóva</span>
+    <section class="stage" aria-label="Holografikus pálya szimuláció">
+      <div class="stage-header">
+        <div>
+          <p class="label">Szimuláció</p>
+          <h2>Holografikus rács • Neon pályák</h2>
+          <p class="muted">
+            A félig 3D perspektívájú játéktér neon kék-lila árnyalatokkal, a Starshell belsejének
+            hideg fém struktúrái és a kinti csillagos kozmosz villanásai között.
+          </p>
+        </div>
+        <div class="legend">
+          <span class="chip path">Út</span>
+          <span class="chip enemy">Alien Drone</span>
+          <span class="chip trail">Energia nyom</span>
+        </div>
       </div>
+      <canvas id="gameCanvas" width="900" height="480" aria-label="Játéktér"></canvas>
+    </section>
+
+    <section class="grid two" aria-label="Fő játékelemek">
+      <article class="card">
+        <p class="label">Alapvetés</p>
+        <h3>Világháttér & cél</h3>
+        <p>
+          A NEXUS Starshell állomást biomechanikus invázió éri. 100 életerővel indulsz, és
+          minden hullám után új tornyokat építhetsz vagy fejleszthetsz. 50 szinten át kell
+          visszaverned a rajokat; a záró Nexus Core győzelmével fény derül az invázió eredetére.
+        </p>
+        <ul class="bullet-grid">
+          <li><strong>Hullám ritmus:</strong> 5–8 hullám/szint, 30s szünetek.</li>
+          <li><strong>Bonuszok:</strong> Combo Kills, Speed Bonus, Perfect Defense.</li>
+          <li><strong>Meta:</strong> 3 csillagos értékelés, Tech pontok, Nightmare mód a végén.</li>
+        </ul>
+      </article>
+      <article class="card">
+        <p class="label">Erőforrás</p>
+        <h3>Energia gazdálkodás</h3>
+        <p>
+          Energia a legyőzött drónokból: Scout (20), Wasp (35), Beetle (50), Phantom (60),
+          Hive-egység (25), Nexus Core (500). Fejlesztések: szint × 50 Energia.
+        </p>
+        <div class="pill-row">
+          <span class="pill">+20% sebzés/szint</span>
+          <span class="pill">+15% tűzgyorsaság/szint</span>
+          <span class="pill">+10% hatótáv/szint</span>
+          <span class="pill">Speciális képesség erősítése</span>
+        </div>
+      </article>
+    </section>
+
+    <section class="grid three" aria-label="Tornyok">
+      <article class="card">
+        <p class="label">100 Energia</p>
+        <h3>Laser Turret</h3>
+        <p>Világoskék lézernyaláb, kompakt, forgó fejjel. Precíz, gyors lövések.</p>
+      </article>
+      <article class="card">
+        <p class="label">150 Energia</p>
+        <h3>Plasma Cannon</h3>
+        <p>Narancs-fehér plazmagömbökkel dolgozik, nehéz, lépcsős forma.</p>
+      </article>
+      <article class="card">
+        <p class="label">120 Energia</p>
+        <h3>Electron Emitter</h3>
+        <p>Zöld-türkiz elektromos sugár, bénítja a célpontokat.</p>
+      </article>
+      <article class="card">
+        <p class="label">180 Energia</p>
+        <h3>Nanite Swarm Dispenser</h3>
+        <p>Nanitrészecske felhőt enged ki, folyamatosan marja az ellenséget.</p>
+      </article>
+      <article class="card">
+        <p class="label">200 Energia</p>
+        <h3>Chrono Accelerator</h3>
+        <p>Időmanipuláció: torony-buff és ellenség lassítás irizáló ködben.</p>
+      </article>
+      <article class="card">
+        <p class="label">250 Energia</p>
+        <h3>Shield Generator</h3>
+        <p>Dómszerű pajzs, félgömb energiával védi a közeli szerkezeteket.</p>
+      </article>
+    </section>
+
+    <section class="grid three" aria-label="Ellenségek">
+      <article class="card">
+        <p class="label">Gyors • Alacsony HP</p>
+        <h3>Scout Drone</h3>
+        <p>Kardszárnyú, fémes szürke drón. Gyakran kicsúszik a lövések közül.</p>
+      </article>
+      <article class="card">
+        <p class="label">Közepes • Toronyellenes</p>
+        <h3>Shredder Wasp</h3>
+        <p>Fekete-piros exoskeleton, közelről csökkenti a tornyok hatékonyságát.</p>
+      </article>
+      <article class="card">
+        <p class="label">Lassú • Magas HP</p>
+        <h3>Armored Beetle</h3>
+        <p>Zöld, kristályos páncél, a sebzés felét elnyeli; speciális tornyok kellenek.</p>
+      </article>
+      <article class="card">
+        <p class="label">Kitérés • Energia alapú ellenfele</p>
+        <h3>Phantom</h3>
+        <p>Félig átlátszó energiaforma; lézerek átlövik, plazma/energia fegyver hatásos.</p>
+      </article>
+      <article class="card">
+        <p class="label">Széthasadó raj</p>
+        <h3>Hive Cluster</h3>
+        <p>Sárga fényraj, szétszóródik bizonyos találatoknál; területi sebzés ideális.</p>
+      </article>
+      <article class="card">
+        <p class="label">Főellenség</p>
+        <h3>Nexus Core</h3>
+        <p>Fénylő lila-fekete gömb, időnként sebezhetetlen buborékkal. Legyőzése lezárja a szintet.</p>
+      </article>
+    </section>
+
+    <section class="grid two" aria-label="Tech fa és kihívások">
+      <article class="card">
+        <p class="label">Tech Tree</p>
+        <h3>Három fő ág</h3>
+        <ul class="bullet-grid">
+          <li><strong>Offensive:</strong> Precision Targeting, Overdrive Systems, Cascade Damage.</li>
+          <li><strong>Defensive:</strong> Adaptive Shields, Regenerative Barriers, Damage Mitigation.</li>
+          <li><strong>Economic:</strong> Resource Optimization, Harvesting Efficiency, Momentum Bonus.</li>
+        </ul>
+      </article>
+      <article class="card">
+        <p class="label">Kihívás módok</p>
+        <h3>Változó nehézség</h3>
+        <ul class="bullet-grid">
+          <li>Endless Mode: végtelenül erősödő hullámok.</li>
+          <li>Time Attack: 5 perces szint limit.</li>
+          <li>Resource Scarcity: 40%-kal kevesebb Energia.</li>
+          <li>Permadeath: egy vereség után újrakezdés.</li>
+        </ul>
+      </article>
+    </section>
+
+    <section class="card" aria-label="Audio">
+      <p class="label">Hangkép</p>
+      <h3>Zene és hangeffektek</h3>
+      <p>
+        Futurisztikus elektronika: menüben lassú, légies szintik; harc közben tempófüggő dinamika;
+        kritikus fázisban sötétebb hangszín; győzelemkor felemelkedő motívum. Minden torony és drón
+        külön jellegű FX-et kap, a UX eventek (építés, fejlesztés, energia gyűjtés, hullám vége) is
+        jelzéssel járnak.
+      </p>
     </section>
   </main>
-  <div class="version">v0.0.2</div>
+  <div class="version">v0.1.0</div>
   <script src="main.js"></script>
 </body>
 </html>
